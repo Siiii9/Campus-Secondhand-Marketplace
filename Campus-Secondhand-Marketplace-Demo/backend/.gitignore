@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### 上传文件 ###
+backend/uploads/
+spring-boot.log
+
+### 本地配置（包含密码，不要上传） ###
+application-local.yml

@@ -1,212 +1,248 @@
-CREATE DATABASE IF NOT EXISTS campus_market CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS campus_secondhand CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE campus_secondhand;
 
-USE campus_market;
+CREATE TABLE IF NOT EXISTS `user` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `real_name` varchar(50) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `city` varchar(50) DEFAULT NULL,
+  `gender` varchar(10) DEFAULT NULL,
+  `bank_account` varchar(16) DEFAULT NULL,
+  `role` varchar(20) NOT NULL DEFAULT 'USER',
+  `status` tinyint NOT NULL DEFAULT '0',
+  `merchant_level` int DEFAULT NULL,
+  `shop_name` varchar(100) DEFAULT NULL,
+  `shop_status` tinyint DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  KEY `idx_role` (`role`),
+  KEY `idx_status` (`status`),
+  KEY `idx_merchant_level` (`merchant_level`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS user (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    real_name VARCHAR(50),
-    phone VARCHAR(20),
-    email VARCHAR(100),
-    city VARCHAR(50),
-    gender VARCHAR(10),
-    bank_account VARCHAR(16),
-    role VARCHAR(20) NOT NULL DEFAULT 'USER',
-    status TINYINT NOT NULL DEFAULT 0,
-    merchant_level INT,
-    shop_name VARCHAR(100),
-    shop_status TINYINT DEFAULT 0,
-    created_at DATETIME NOT NULL
-);
+CREATE TABLE IF NOT EXISTS `user_audit_log` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL,
+  `business_license` varchar(255) DEFAULT NULL,
+  `id_card_front` varchar(255) DEFAULT NULL,
+  `id_card_back` varchar(255) DEFAULT NULL,
+  `audit_status` tinyint DEFAULT '0',
+  `audit_remark` varchar(255) DEFAULT NULL,
+  `auditor_id` bigint DEFAULT NULL,
+  `audit_time` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_audit_status` (`audit_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS user_audit_log (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    business_license VARCHAR(255),
-    id_card_front VARCHAR(255),
-    id_card_back VARCHAR(255),
-    audit_status TINYINT NOT NULL DEFAULT 0,
-    audit_remark VARCHAR(255),
-    auditor_id BIGINT,
-    audit_time DATETIME,
-    FOREIGN KEY (user_id) REFERENCES user(id)
-);
+CREATE TABLE IF NOT EXISTS `category` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `parent_id` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_parent_id` (`parent_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS category (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
-    parent_id INT DEFAULT 0,
-    FOREIGN KEY (parent_id) REFERENCES category(id)
-);
+CREATE TABLE IF NOT EXISTS `product` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `merchant_id` bigint NOT NULL,
+  `category_id` int DEFAULT NULL,
+  `name` varchar(200) NOT NULL,
+  `description` text,
+  `original_price` decimal(10,2) NOT NULL,
+  `discount_price` decimal(10,2) DEFAULT NULL,
+  `stock` int NOT NULL DEFAULT '0',
+  `unit` varchar(20) DEFAULT NULL,
+  `is_negotiable` tinyint DEFAULT '0',
+  `condition_level` varchar(20) DEFAULT NULL,
+  `status` tinyint DEFAULT '0',
+  `sales_count` int DEFAULT '0',
+  `view_count` int DEFAULT '0',
+  `avg_rating` decimal(2,1) DEFAULT '0.0',
+  `audit_status` tinyint DEFAULT '0',
+  `audit_time` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_merchant_id` (`merchant_id`),
+  KEY `idx_category_id` (`category_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_sales_count` (`sales_count`),
+  KEY `idx_avg_rating` (`avg_rating`),
+  KEY `idx_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS product (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    merchant_id BIGINT NOT NULL,
-    category_id INT NOT NULL,
-    name VARCHAR(200) NOT NULL,
-    description TEXT,
-    original_price DECIMAL(10,2) NOT NULL,
-    discount_price DECIMAL(10,2) NOT NULL,
-    stock INT NOT NULL DEFAULT 0,
-    unit VARCHAR(20),
-    is_negotiable TINYINT NOT NULL DEFAULT 0,
-    condition_level VARCHAR(20),
-    status TINYINT NOT NULL DEFAULT 0,
-    sales_count INT NOT NULL DEFAULT 0,
-    view_count INT NOT NULL DEFAULT 0,
-    avg_rating DECIMAL(2,1),
-    audit_status TINYINT NOT NULL DEFAULT 0,
-    audit_time DATETIME,
-    created_at DATETIME NOT NULL,
-    FOREIGN KEY (merchant_id) REFERENCES user(id),
-    FOREIGN KEY (category_id) REFERENCES category(id)
-);
+CREATE TABLE IF NOT EXISTS `product_image` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `product_id` bigint NOT NULL,
+  `image_url` varchar(255) NOT NULL,
+  `sort_order` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS product_image (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    product_id BIGINT NOT NULL,
-    image_url VARCHAR(255) NOT NULL,
-    sort_order INT NOT NULL DEFAULT 0,
-    FOREIGN KEY (product_id) REFERENCES product(id)
-);
+CREATE TABLE IF NOT EXISTS `merchant_level_config` (
+  `level` int NOT NULL,
+  `fee_rate` decimal(5,4) NOT NULL,
+  `min_transaction_amount` decimal(10,2) DEFAULT NULL,
+  `min_satisfaction` decimal(2,1) DEFAULT NULL,
+  PRIMARY KEY (`level`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS merchant_level_config (
-    level INT PRIMARY KEY,
-    fee_rate DECIMAL(5,4) NOT NULL,
-    min_transaction_amount DECIMAL(10,2),
-    min_satisfaction DECIMAL(2,1)
-);
-
-CREATE TABLE IF NOT EXISTS cart (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    product_id BIGINT NOT NULL,
-    quantity INT NOT NULL DEFAULT 1,
-    selected TINYINT NOT NULL DEFAULT 1,
-    created_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user(id),
-    FOREIGN KEY (product_id) REFERENCES product(id)
-);
+CREATE TABLE IF NOT EXISTS `cart` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL,
+  `product_id` bigint NOT NULL,
+  `quantity` int NOT NULL DEFAULT '1',
+  `selected` tinyint DEFAULT '1',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_product` (`user_id`,`product_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `order` (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_no VARCHAR(32) NOT NULL UNIQUE,
-    user_id BIGINT NOT NULL,
-    merchant_id BIGINT NOT NULL,
-    total_amount DECIMAL(10,2) NOT NULL,
-    points_deducted INT NOT NULL DEFAULT 0,
-    points_deduct_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
-    actual_paid DECIMAL(10,2) NOT NULL,
-    status TINYINT NOT NULL DEFAULT 0,
-    paid_at DATETIME,
-    received_at DATETIME,
-    return_deadline DATETIME,
-    is_returned TINYINT NOT NULL DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES user(id),
-    FOREIGN KEY (merchant_id) REFERENCES user(id)
-);
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `order_no` varchar(32) NOT NULL,
+  `user_id` bigint NOT NULL,
+  `merchant_id` bigint NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL,
+  `points_deducted` int DEFAULT '0',
+  `points_deduct_amount` decimal(10,2) DEFAULT '0.00',
+  `actual_paid` decimal(10,2) NOT NULL,
+  `status` tinyint DEFAULT '0',
+  `paid_at` datetime DEFAULT NULL,
+  `received_at` datetime DEFAULT NULL,
+  `return_deadline` datetime DEFAULT NULL,
+  `is_returned` tinyint DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `order_no` (`order_no`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_merchant_id` (`merchant_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS order_item (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id BIGINT NOT NULL,
-    product_id BIGINT NOT NULL,
-    quantity INT NOT NULL DEFAULT 1,
-    price DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (order_id) REFERENCES `order`(id),
-    FOREIGN KEY (product_id) REFERENCES product(id)
-);
+CREATE TABLE IF NOT EXISTS `order_item` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `order_id` bigint NOT NULL,
+  `product_id` bigint NOT NULL,
+  `quantity` int NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS return_request (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    reason VARCHAR(255),
-    status TINYINT NOT NULL DEFAULT 0,
-    audit_time DATETIME,
-    created_at DATETIME NOT NULL,
-    FOREIGN KEY (order_id) REFERENCES `order`(id),
-    FOREIGN KEY (user_id) REFERENCES user(id)
-);
+CREATE TABLE IF NOT EXISTS `return_request` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `order_id` bigint NOT NULL,
+  `user_id` bigint NOT NULL,
+  `reason` varchar(255) DEFAULT NULL,
+  `status` tinyint DEFAULT '0',
+  `audit_time` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS wallet (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL UNIQUE,
-    balance DECIMAL(10,2) NOT NULL DEFAULT 0,
-    frozen_balance DECIMAL(10,2) NOT NULL DEFAULT 0,
-    updated_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user(id)
-);
+CREATE TABLE IF NOT EXISTS `wallet` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL,
+  `balance` decimal(10,2) DEFAULT '0.00',
+  `frozen_balance` decimal(10,2) DEFAULT '0.00',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS points (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL UNIQUE,
-    points INT NOT NULL DEFAULT 0,
-    updated_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user(id)
-);
+CREATE TABLE IF NOT EXISTS `points` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL,
+  `points` int DEFAULT '0',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS points_record (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    change_amount INT NOT NULL,
-    reason VARCHAR(100),
-    order_id BIGINT,
-    created_at DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user(id),
-    FOREIGN KEY (order_id) REFERENCES `order`(id)
-);
+CREATE TABLE IF NOT EXISTS `points_record` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL,
+  `change_amount` int NOT NULL,
+  `reason` varchar(100) DEFAULT NULL,
+  `order_id` bigint DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS transaction (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id BIGINT NOT NULL,
-    merchant_id BIGINT NOT NULL,
-    buyer_id BIGINT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    fee DECIMAL(10,2) NOT NULL DEFAULT 0,
-    fee_rate DECIMAL(5,4) NOT NULL,
-    net_amount DECIMAL(10,2) NOT NULL,
-    status TINYINT NOT NULL DEFAULT 0,
-    created_at DATETIME NOT NULL,
-    settled_at DATETIME,
-    FOREIGN KEY (order_id) REFERENCES `order`(id),
-    FOREIGN KEY (merchant_id) REFERENCES user(id),
-    FOREIGN KEY (buyer_id) REFERENCES user(id)
-);
+CREATE TABLE IF NOT EXISTS `transaction` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `order_id` bigint NOT NULL,
+  `merchant_id` bigint NOT NULL,
+  `buyer_id` bigint NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `fee` decimal(10,2) DEFAULT '0.00',
+  `fee_rate` decimal(5,4) DEFAULT '0.0000',
+  `net_amount` decimal(10,2) NOT NULL,
+  `status` tinyint DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `settled_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_merchant_id` (`merchant_id`),
+  KEY `idx_buyer_id` (`buyer_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS review (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id BIGINT NOT NULL,
-    review_type VARCHAR(20) NOT NULL,
-    from_user_id BIGINT NOT NULL,
-    to_user_id BIGINT NOT NULL,
-    product_id BIGINT,
-    rating INT NOT NULL,
-    content TEXT,
-    created_at DATETIME NOT NULL,
-    FOREIGN KEY (order_id) REFERENCES `order`(id),
-    FOREIGN KEY (from_user_id) REFERENCES user(id),
-    FOREIGN KEY (to_user_id) REFERENCES user(id),
-    FOREIGN KEY (product_id) REFERENCES product(id)
-);
+CREATE TABLE IF NOT EXISTS `review` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `order_id` bigint NOT NULL,
+  `review_type` varchar(20) NOT NULL,
+  `from_user_id` bigint NOT NULL,
+  `to_user_id` bigint NOT NULL,
+  `product_id` bigint DEFAULT NULL,
+  `rating` int DEFAULT NULL,
+  `content` text,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_from_user_id` (`from_user_id`),
+  KEY `idx_to_user_id` (`to_user_id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_review_type` (`review_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS carousel (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    image_url VARCHAR(255) NOT NULL,
-    link_url VARCHAR(255),
-    sort_order INT NOT NULL DEFAULT 0,
-    status TINYINT NOT NULL DEFAULT 1,
-    created_at DATETIME NOT NULL
-);
+CREATE TABLE IF NOT EXISTS `carousel` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `image_url` varchar(255) NOT NULL,
+  `link_url` varchar(255) DEFAULT NULL,
+  `sort_order` int DEFAULT '0',
+  `status` tinyint DEFAULT '1',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_sort_order` (`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-INSERT INTO merchant_level_config (level, fee_rate, min_transaction_amount, min_satisfaction) VALUES
-(1, 0.001, 0, 0),
-(2, 0.002, 1000, 4.0),
-(3, 0.005, 5000, 4.2),
-(4, 0.0075, 10000, 4.5),
-(5, 0.01, 50000, 4.8);
+INSERT INTO `merchant_level_config` (`level`, `fee_rate`, `min_transaction_amount`, `min_satisfaction`) VALUES
+(1, 0.0010, 0.00, 3.0),
+(2, 0.0020, 1000.00, 3.5),
+(3, 0.0050, 5000.00, 4.0),
+(4, 0.0075, 20000.00, 4.5),
+(5, 0.0100, 50000.00, 4.8);
 
-INSERT INTO category (id, name, parent_id) VALUES
+INSERT INTO `category` (`id`, `name`, `parent_id`) VALUES
 (1, '电子产品', 0),
 (2, '手机', 1),
 (3, '电脑', 1),
@@ -218,5 +254,5 @@ INSERT INTO category (id, name, parent_id) VALUES
 (9, '衣物', 8),
 (10, '化妆品', 8);
 
-INSERT INTO user (id, username, password, real_name, phone, email, city, gender, bank_account, role, status, merchant_level, shop_name, shop_status, created_at) VALUES
-(1, 'admin', '21232f297a57a5a743894a0e4a801fc3', '管理员', '13800138000', 'admin@example.com', '北京', '男', '1234567890123456', 'ADMIN', 1, NULL, NULL, NULL, NOW());
+INSERT INTO `user` (`id`, `username`, `password`, `real_name`, `phone`, `role`, `status`, `created_at`) VALUES
+(1, 'admin', 'admin', '管理员', '13800138000', 'ADMIN', 1, NOW());
