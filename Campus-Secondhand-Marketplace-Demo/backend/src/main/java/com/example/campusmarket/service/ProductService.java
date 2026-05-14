@@ -92,6 +92,19 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
         return productMapper.selectById(id);
     }
 
+    public Page<Product> getShopProducts(Long merchantId, Integer status, int page, int size) {
+        Page<Product> pageInfo = new Page<>(page, size);
+        QueryWrapper<Product> wrapper = new QueryWrapper<>();
+        wrapper.eq("merchant_id", merchantId);
+        
+        if (status != null) {
+            wrapper.eq("status", status);
+        }
+        
+        wrapper.orderByDesc("created_at");
+        return productMapper.selectPage(pageInfo, wrapper);
+    }
+
     public boolean updateStock(Long productId, Integer quantity) {
         Product product = productMapper.selectById(productId);
         if (product == null || product.getStock() < quantity) {

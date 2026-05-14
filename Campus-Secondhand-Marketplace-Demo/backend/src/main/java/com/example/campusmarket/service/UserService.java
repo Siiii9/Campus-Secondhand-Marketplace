@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class UserService extends ServiceImpl<UserMapper, User> {
@@ -63,6 +64,11 @@ public class UserService extends ServiceImpl<UserMapper, User> {
         user.setStatus(auditStatus);
         userMapper.updateById(user);
         
+        if ("MERCHANT".equals(user.getRole()) && auditStatus == 1) {
+            user.setShopStatus(1);
+            userMapper.updateById(user);
+        }
+        
         QueryWrapper<UserAuditLog> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId);
         UserAuditLog auditLog = userAuditLogMapper.selectOne(wrapper);
@@ -82,5 +88,54 @@ public class UserService extends ServiceImpl<UserMapper, User> {
 
     public boolean deleteUser(Long id) {
         return userMapper.deleteById(id) > 0;
+    }
+
+    public List<User> list(String keyword, String role) {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        if (keyword != null && !keyword.isEmpty()) {
+            wrapper.and(w -> w.like("username", keyword)
+                    .or()
+                    .like("real_name", keyword)
+                    .or()
+                    .like("phone", keyword));
+        }
+        if (role != null && !role.isEmpty()) {
+            wrapper.eq("role", role);
+        }
+        wrapper.orderByDesc("created_at");
+        return userMapper.selectList(wrapper);
+    }
+
+    public List<User> getPendingUsers() {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("status", 0);
+        wrapper.orderByAsc("created_at");
+        return userMapper.selectList(wrapper);
+    }
+
+    public UserAuditLog getAuditLogByUserId(Long userId) {
+        QueryWrapper<UserAuditLog> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId);
+        return userAuditLogMapper.selectOne(wrapper);
+    }
+
+    @Transactional
+    public boolean updateMerchantLevel(Long userId, Integer level) {
+        User user = userMapper.selectById(userId);
+        if (user == null || !"MERCHANT".equals(user.getRole())) {
+            return false;
+        }
+        user.setMerchantLevel(level);
+        return userMapper.updateById(user) > 0;
+    }
+
+    @Transactional
+    public boolean closeShop(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || !"MERCHANT".equals(user.getRole())) {
+            return false;
+        }
+        user.setShopStatus(0);
+        return userMapper.updateById(user) > 0;
     }
 }

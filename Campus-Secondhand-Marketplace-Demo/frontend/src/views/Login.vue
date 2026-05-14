@@ -31,7 +31,7 @@ const login = async () => {
     const res = await axios.post('/api/users/login', {
       username: username.value,
       password: password.value
-    })
+    }, { withCredentials: true })
     
     if (res.data.code === 200) {
       localStorage.setItem('userToken', res.data.data.id.toString())

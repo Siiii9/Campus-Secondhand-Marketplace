@@ -9,6 +9,7 @@ import Admin from '../views/Admin.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import MerchantCenter from '../views/MerchantCenter.vue'
+import Shop from '../views/Shop.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,6 +28,11 @@ const router = createRouter({
       name: 'Admin', 
       component: Admin,
       meta: { requiresAdmin: true }
+    },
+    { 
+      path: '/shop/:id', 
+      name: 'Shop', 
+      component: Shop 
     }
   ]
 })
@@ -45,7 +51,7 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  if (to.meta.isPublic && isLoggedIn) {
+  if (to.meta.isPublic && isLoggedIn && to.path !== '/login') {
     next('/')
     return
   }
