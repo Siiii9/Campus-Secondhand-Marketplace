@@ -5,14 +5,18 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.campusmarket.entity.Product;
 import com.example.campusmarket.entity.ProductImage;
+import com.example.campusmarket.entity.Review;
 import com.example.campusmarket.mapper.ProductImageMapper;
 import com.example.campusmarket.mapper.ProductMapper;
+import com.example.campusmarket.mapper.ReviewMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProductService extends ServiceImpl<ProductMapper, Product> {
@@ -22,6 +26,9 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
 
     @Autowired
     private ProductImageMapper productImageMapper;
+
+    @Autowired
+    private ReviewMapper reviewMapper;
 
     @Transactional
     public boolean addProduct(Product product, List<String> images) {
@@ -45,14 +52,19 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
         return result > 0;
     }
 
-    public Page<Product> searchProducts(String keyword, String sortBy, int page, int size) {
+    public Page<Map<String, Object>> searchProducts(String keyword, String sortBy, int page, int size, Integer auditStatus) {
         Page<Product> pageInfo = new Page<>(page, size);
         QueryWrapper<Product> wrapper = new QueryWrapper<>();
         
         if (keyword != null && !keyword.isEmpty()) {
             wrapper.like("name", keyword);
         }
-        wrapper.eq("status", 1);
+        
+        if (auditStatus != null) {
+            wrapper.eq("audit_status", auditStatus);
+        } else {
+            wrapper.eq("status", 1);
+        }
         
         if ("price".equals(sortBy)) {
             wrapper.orderByAsc("discount_price");
@@ -64,7 +76,33 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
             wrapper.orderByDesc("created_at");
         }
         
-        return productMapper.selectPage(pageInfo, wrapper);
+        Page<Product> result = productMapper.selectPage(pageInfo, wrapper);
+        
+        Page<Map<String, Object>> resultPage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
+        List<Map<String, Object>> records = result.getRecords().stream().map(product -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", product.getId());
+            map.put("name", product.getName());
+            map.put("originalPrice", product.getOriginalPrice());
+            map.put("discountPrice", product.getDiscountPrice());
+            map.put("stock", product.getStock());
+            map.put("salesCount", product.getSalesCount());
+            map.put("status", product.getStatus());
+            map.put("auditStatus", product.getAuditStatus());
+            map.put("merchantId", product.getMerchantId());
+            
+            QueryWrapper<ProductImage> imageWrapper = new QueryWrapper<>();
+            imageWrapper.eq("product_id", product.getId());
+            imageWrapper.orderByAsc("sort_order");
+            List<ProductImage> images = productImageMapper.selectList(imageWrapper);
+            List<String> imageUrls = images.stream().map(ProductImage::getImageUrl).toList();
+            map.put("images", imageUrls);
+            
+            return map;
+        }).toList();
+        
+        resultPage.setRecords(records);
+        return resultPage;
     }
 
     public boolean updateProduct(Product product) {
@@ -82,14 +120,43 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
         return productMapper.updateById(product) > 0;
     }
 
-    public List<Product> getProductsByMerchant(Long merchantId) {
+    public List<Map<String, Object>> getProductsByMerchant(Long merchantId) {
         QueryWrapper<Product> wrapper = new QueryWrapper<>();
         wrapper.eq("merchant_id", merchantId);
-        return productMapper.selectList(wrapper);
+        List<Product> products = productMapper.selectList(wrapper);
+        
+        return products.stream().map(product -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", product.getId());
+            map.put("name", product.getName());
+            map.put("originalPrice", product.getOriginalPrice());
+            map.put("discountPrice", product.getDiscountPrice());
+            map.put("stock", product.getStock());
+            map.put("salesCount", product.getSalesCount());
+            map.put("status", product.getStatus());
+            map.put("auditStatus", product.getAuditStatus());
+            map.put("conditionLevel", product.getConditionLevel());
+            
+            QueryWrapper<ProductImage> imageWrapper = new QueryWrapper<>();
+            imageWrapper.eq("product_id", product.getId());
+            imageWrapper.orderByAsc("sort_order");
+            List<ProductImage> images = productImageMapper.selectList(imageWrapper);
+            List<String> imageUrls = images.stream().map(ProductImage::getImageUrl).toList();
+            map.put("images", imageUrls);
+            
+            return map;
+        }).toList();
     }
 
     public Product getProductById(Long id) {
         return productMapper.selectById(id);
+    }
+
+    public boolean deleteProduct(Long id) {
+        QueryWrapper<ProductImage> imageWrapper = new QueryWrapper<>();
+        imageWrapper.eq("product_id", id);
+        productImageMapper.delete(imageWrapper);
+        return productMapper.deleteById(id) > 0;
     }
 
     public Page<Product> getShopProducts(Long merchantId, Integer status, int page, int size) {
@@ -121,5 +188,30 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
         }
         product.setSalesCount(product.getSalesCount() + quantity);
         return productMapper.updateById(product) > 0;
+    }
+
+    public Map<String, Object> getProductDetail(Long productId) {
+        Product product = productMapper.selectById(productId);
+        if (product == null) {
+            return null;
+        }
+
+        Map<String, Object> detail = new HashMap<>();
+        detail.put("product", product);
+
+        QueryWrapper<ProductImage> imageWrapper = new QueryWrapper<>();
+        imageWrapper.eq("product_id", productId);
+        imageWrapper.orderByAsc("sort_order");
+        List<ProductImage> images = productImageMapper.selectList(imageWrapper);
+        List<String> imageUrls = images.stream().map(ProductImage::getImageUrl).toList();
+        detail.put("images", imageUrls);
+
+        QueryWrapper<Review> reviewWrapper = new QueryWrapper<>();
+        reviewWrapper.eq("product_id", productId);
+        reviewWrapper.orderByDesc("created_at");
+        List<Review> reviews = reviewMapper.selectList(reviewWrapper);
+        detail.put("reviews", reviews);
+
+        return detail;
     }
 }

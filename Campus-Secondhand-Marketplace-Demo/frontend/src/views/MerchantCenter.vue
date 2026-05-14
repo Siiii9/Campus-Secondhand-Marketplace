@@ -1,103 +1,121 @@
 <template>
   <div class="merchant-center">
-    <h2>商家中心</h2>
+    <div class="header">
+      <button class="btn-back" @click="$router.push('/')">← 返回主页</button>
+      <h2>商家中心</h2>
+    </div>
     
     <div class="tabs">
-      <button :class="{ active: activeTab === 'products' }" @click="activeTab = 'products'">我的商品</button>
+      <button :class="{ active: activeTab === 'products' }" @click="activeTab = 'products'">商品管理</button>
       <button :class="{ active: activeTab === 'add' }" @click="activeTab = 'add'">发布商品</button>
+      <button :class="{ active: activeTab === 'shop' }" @click="activeTab = 'shop'">我的店铺</button>
     </div>
 
     <div v-if="activeTab === 'products'" class="tab-content">
-      <div class="filter-bar">
-        <select v-model="statusFilter" @change="loadProducts">
-          <option value="">全部状态</option>
-          <option value="0">待审核</option>
-          <option value="1">已发布</option>
-          <option value="2">已下架</option>
-        </select>
+      <div class="product-tabs">
+        <button :class="{ active: productTab === 'selling' }" @click="productTab = 'selling'; loadProducts(1)">销售中</button>
+        <button :class="{ active: productTab === 'offline' }" @click="productTab = 'offline'; loadProducts(2)">已下架</button>
+        <button :class="{ active: productTab === 'sold' }" @click="productTab = 'sold'; loadProducts(3)">已出售</button>
+        <button :class="{ active: productTab === 'pending' }" @click="productTab = 'pending'; loadProducts(0)">待审核</button>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>商品名</th>
-            <th>价格</th>
-            <th>库存</th>
-            <th>销量</th>
-            <th>状态</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="product in products" :key="product.id">
-            <td>{{ product.id }}</td>
-            <td>{{ product.name }}</td>
-            <td>¥{{ product.discountPrice }}</td>
-            <td>{{ product.stock }}</td>
-            <td>{{ product.salesCount }}</td>
-            <td>{{ getStatusText(product.status) }}</td>
-            <td>
-              <button v-if="product.status === 1" @click="editProduct(product)">编辑</button>
-              <button v-if="product.status === 1" @click="offlineProduct(product.id)">下架</button>
-              <button v-if="product.status === 2" @click="onlineProduct(product.id)">上架</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      
+      <div v-if="productList.length === 0" class="empty-state">
+        <p>暂无商品</p>
+      </div>
+      
+      <div v-else class="product-grid">
+        <div v-for="product in productList" :key="product.id" class="product-card">
+          <div class="product-image">
+            <img :src="product.images?.[0] || '/placeholder.png'" alt="商品图片">
+          </div>
+          <div class="product-info">
+            <h3>{{ product.name }}</h3>
+            <p class="price">¥{{ product.discountPrice }} <span class="original-price">¥{{ product.originalPrice }}</span></p>
+            <p class="stock">库存: {{ product.stock }} | 销量: {{ product.salesCount }}</p>
+            <div class="product-actions">
+              <button class="btn-detail" @click="viewProductDetail(product)">查看详情</button>
+              <button v-if="productTab === 'selling'" class="btn-offline" @click="offlineProduct(product.id)">下架</button>
+              <button v-if="productTab === 'offline'" class="btn-online" @click="onlineProduct(product.id)">重新上架</button>
+              <button v-if="productTab === 'pending'" class="btn-delete" @click="deleteProduct(product.id)">删除</button>
+              <button v-if="productTab !== 'sold'" class="btn-edit" @click="editProduct(product)">编辑</button>
+              <button class="btn-stock" @click="adjustStock(product)">调整库存</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-if="activeTab === 'add'" class="tab-content">
       <form @submit.prevent="addProduct" enctype="multipart/form-data">
         <div class="form-group">
-          <label>商品名称</label>
-          <input type="text" v-model="productForm.name" required>
+          <label>商品名称 <span class="required">*</span></label>
+          <input type="text" v-model="productForm.name" required placeholder="请输入商品名称">
         </div>
-        <div class="form-group">
-          <label>分类</label>
-          <select v-model="productForm.categoryId">
-            <option value="1">电子产品</option>
-            <option value="5">学习用品</option>
-            <option value="8">生活用品</option>
-          </select>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>类别 <span class="required">*</span></label>
+            <select v-model="productForm.categoryId">
+              <option value="1">电子产品</option>
+              <option value="2">服装</option>
+              <option value="3">食品</option>
+              <option value="4">图书</option>
+              <option value="5">学习用品</option>
+              <option value="6">运动器材</option>
+              <option value="7">美妆护肤</option>
+              <option value="8">生活用品</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>新旧程度 <span class="required">*</span></label>
+            <select v-model="productForm.conditionLevel">
+              <option value="全新">全新</option>
+              <option value="九成新">九成新</option>
+              <option value="八成新">八成新</option>
+              <option value="七成新">七成新</option>
+              <option value="六成新及以下">六成新及以下</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label>原价</label>
-          <input type="number" v-model="productForm.originalPrice" step="0.01" required>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>原价 <span class="required">*</span></label>
+            <input type="number" v-model="productForm.originalPrice" step="0.01" required placeholder="原价">
+          </div>
+          <div class="form-group">
+            <label>折扣价 <span class="required">*</span></label>
+            <input type="number" v-model="productForm.discountPrice" step="0.01" required placeholder="折后价">
+          </div>
         </div>
-        <div class="form-group">
-          <label>折扣价</label>
-          <input type="number" v-model="productForm.discountPrice" step="0.01" required>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>商品数量 <span class="required">*</span></label>
+            <input type="number" v-model="productForm.stock" min="1" required placeholder="正整数">
+          </div>
+          <div class="form-group">
+            <label>尺寸大小</label>
+            <input type="text" v-model="productForm.unit" placeholder="如 L,XL 或 10cm*20cm">
+          </div>
         </div>
+
         <div class="form-group">
-          <label>库存</label>
-          <input type="number" v-model="productForm.stock" required>
+          <label>是否允许议价</label>
+          <div class="radio-group">
+            <label><input type="radio" v-model="productForm.isNegotiable" :value="1"> 是</label>
+            <label><input type="radio" v-model="productForm.isNegotiable" :value="0"> 否</label>
+          </div>
         </div>
+
         <div class="form-group">
-          <label>尺寸</label>
-          <input type="text" v-model="productForm.unit">
+          <label>使用说明</label>
+          <textarea v-model="productForm.description" rows="4" placeholder="请输入商品使用说明"></textarea>
         </div>
+
         <div class="form-group">
-          <label>新旧程度</label>
-          <select v-model="productForm.conditionLevel">
-            <option value="全新">全新</option>
-            <option value="九成新">九成新</option>
-            <option value="八成新">八成新</option>
-            <option value="七成新">七成新</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>是否议价</label>
-          <select v-model="productForm.isNegotiable">
-            <option :value="0">否</option>
-            <option :value="1">是</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>商品描述</label>
-          <textarea v-model="productForm.description"></textarea>
-        </div>
-        <div class="form-group">
-          <label>商品图片（可多选）</label>
+          <label>商品照片（支持多张上传，可拖拽排序）</label>
           <div class="upload-area" @click="triggerFileInput" @dragover.prevent @drop.prevent="handleDrop">
             <input 
               ref="fileInput" 
@@ -121,29 +139,131 @@
             </div>
           </div>
         </div>
-        <button type="submit" class="submit-btn">发布商品</button>
+
+        <button type="submit" class="submit-btn">提交发布</button>
       </form>
+    </div>
+
+    <div v-if="activeTab === 'shop'" class="tab-content">
+      <div class="shop-header">
+        <h3>{{ shopInfo.shopName || (currentUser?.realName || currentUser?.username) + '的店' }}</h3>
+        <p class="service-rating">服务态度评分: {{ shopInfo.serviceRating || 0 }} ⭐</p>
+      </div>
+      
+      <div class="shop-products">
+        <div v-for="product in shopProducts" :key="product.id" class="shop-product-card">
+          <img :src="product.images?.[0] || '/placeholder.png'" alt="商品图片">
+          <div class="shop-product-info">
+            <h4>{{ product.name }}</h4>
+            <p>¥{{ product.discountPrice }}</p>
+            <p>销量: {{ product.salesCount }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商品详情弹窗 -->
+    <div v-if="showDetailModal" class="modal-overlay" @click.self="closeDetailModal">
+      <div class="modal-content large">
+        <h3>商品详情</h3>
+        <button class="close-btn" @click="closeDetailModal">×</button>
+        
+        <div v-if="selectedProduct" class="product-detail">
+          <div class="detail-images">
+            <img v-for="(img, index) in selectedProduct.images" :key="index" :src="img" alt="商品图片">
+          </div>
+          <div class="detail-info">
+            <h4>{{ selectedProduct.name }}</h4>
+            <p class="price">¥{{ selectedProduct.discountPrice }} <span class="original-price">¥{{ selectedProduct.originalPrice }}</span></p>
+            <p><strong>类别:</strong> {{ getCategoryName(selectedProduct.categoryId) }}</p>
+            <p><strong>新旧程度:</strong> {{ selectedProduct.conditionLevel }}</p>
+            <p><strong>尺寸:</strong> {{ selectedProduct.unit || '未设置' }}</p>
+            <p><strong>库存:</strong> {{ selectedProduct.stock }}</p>
+            <p><strong>销量:</strong> {{ selectedProduct.salesCount }}</p>
+            <p><strong>是否议价:</strong> {{ selectedProduct.isNegotiable === 1 ? '是' : '否' }}</p>
+            <p><strong>使用说明:</strong> {{ selectedProduct.description || '无' }}</p>
+            <p><strong>平均评分:</strong> {{ selectedProduct.avgRating || 0 }} ⭐</p>
+          </div>
+          
+          <div class="review-section">
+            <h4>买家评价</h4>
+            <div v-if="selectedProduct.reviews?.length === 0" class="no-reviews">暂无评价</div>
+            <div v-else class="review-list">
+              <div v-for="review in selectedProduct.reviews" :key="review.id" class="review-item">
+                <div class="review-header">
+                  <span class="reviewer">{{ review.userName }}</span>
+                  <span class="review-rating">{{ '⭐'.repeat(review.rating) }}</span>
+                  <span class="review-time">{{ formatTime(review.createdAt) }}</span>
+                </div>
+                <p class="review-content">{{ review.content }}</p>
+                <div v-if="review.reply" class="review-reply">
+                  <span class="reply-label">商家回复:</span>
+                  <span>{{ review.reply }}</span>
+                </div>
+                <input v-if="!review.reply" type="text" v-model="replyContent" placeholder="回复评价">
+                <button v-if="!review.reply" @click="replyReview(review.id)">回复</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 编辑商品弹窗 -->
     <div v-if="showEditModal" class="modal-overlay" @click.self="closeEditModal">
       <div class="modal-content">
         <h3>编辑商品</h3>
-        <div v-if="editingProduct" class="form-group">
-          <label>商品名称</label>
-          <input type="text" v-model="editingProduct.name" required>
-          <label>原价</label>
-          <input type="number" v-model="editingProduct.originalPrice" step="0.01" required>
-          <label>折扣价</label>
-          <input type="number" v-model="editingProduct.discountPrice" step="0.01" required>
-          <label>库存</label>
-          <input type="number" v-model="editingProduct.stock" required>
-          <label>描述</label>
-          <textarea v-model="editingProduct.description"></textarea>
+        <button class="close-btn" @click="closeEditModal">×</button>
+        
+        <div v-if="editingProduct" class="edit-form">
+          <div class="form-group">
+            <label>商品名称</label>
+            <input type="text" v-model="editingProduct.name" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>原价</label>
+              <input type="number" v-model="editingProduct.originalPrice" step="0.01" required>
+            </div>
+            <div class="form-group">
+              <label>折扣价</label>
+              <input type="number" v-model="editingProduct.discountPrice" step="0.01" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>库存</label>
+            <input type="number" v-model="editingProduct.stock" required>
+          </div>
+          <div class="form-group">
+            <label>描述</label>
+            <textarea v-model="editingProduct.description"></textarea>
+          </div>
         </div>
+        
         <div class="modal-actions">
           <button class="btn-cancel" @click="closeEditModal">取消</button>
-          <button class="btn-confirm" @click="saveEdit">保存</button>
+          <button class="btn-confirm" @click="saveEdit">保存（需重新审核）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 调整库存弹窗 -->
+    <div v-if="showStockModal" class="modal-overlay" @click.self="closeStockModal">
+      <div class="modal-content small">
+        <h3>调整库存</h3>
+        <button class="close-btn" @click="closeStockModal">×</button>
+        
+        <div v-if="stockProduct" class="stock-form">
+          <p>当前库存: {{ stockProduct.stock }}</p>
+          <div class="form-group">
+            <label>新库存数量</label>
+            <input type="number" v-model="newStock" min="0" required>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="closeStockModal">取消</button>
+          <button class="btn-confirm" @click="saveStock">确认调整</button>
         </div>
       </div>
     </div>
@@ -151,15 +271,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
 const activeTab = ref('products')
-const products = ref<any[]>([])
-const statusFilter = ref('')
+const productTab = ref('selling')
+const productList = ref<any[]>([])
+const shopProducts = ref<any[]>([])
+const shopInfo = reactive({ shopName: '', serviceRating: 0 })
+const currentUser = ref<any>(null)
 
-const productForm = ref({
+const productForm = reactive({
   name: '',
   categoryId: 1,
   originalPrice: 0,
@@ -174,31 +297,74 @@ const productForm = ref({
 const uploadedImages = ref<string[]>([])
 const fileInput = ref<HTMLInputElement | null>(null)
 
+const showDetailModal = ref(false)
 const showEditModal = ref(false)
+const showStockModal = ref(false)
+const selectedProduct = ref<any>(null)
 const editingProduct = ref<any>(null)
+const stockProduct = ref<any>(null)
+const newStock = ref(0)
+const replyContent = ref('')
 
 onMounted(() => {
-  loadProducts()
+  loadCurrentUser()
+  loadProducts(1)
+  loadShopInfo()
 })
 
-const loadProducts = () => {
-  axios.get('/api/products/merchant/1').then(res => {
-    if (statusFilter.value) {
-      products.value = res.data.data.filter((p: any) => p.status === parseInt(statusFilter.value))
-    } else {
-      products.value = res.data.data
+const loadCurrentUser = () => {
+  axios.get('/api/users/info', { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      currentUser.value = res.data.data
     }
   })
 }
 
-const getStatusText = (status: number) => {
-  const statusMap: Record<number, string> = {
-    0: '待审核',
-    1: '已发布',
-    2: '已下架',
-    3: '交易中'
+const loadProducts = (status: number) => {
+  axios.get('/api/products/merchant', { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      let products = res.data.data
+      
+      if (status === 1) {
+        productList.value = products.filter((p: any) => p.status === 1 && p.stock > 0)
+      } else if (status === 2) {
+        productList.value = products.filter((p: any) => p.status === 2)
+      } else if (status === 3) {
+        productList.value = products.filter((p: any) => p.status === 1 && p.stock === 0)
+      } else if (status === 0) {
+        productList.value = products.filter((p: any) => p.auditStatus === 0)
+      }
+    }
+  })
+}
+
+const loadShopInfo = () => {
+  axios.get('/api/products/merchant/shop', { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      shopProducts.value = res.data.data.records || []
+    }
+  })
+  
+  axios.get('/api/users/info', { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      shopInfo.shopName = res.data.data.shopName || ''
+      shopInfo.serviceRating = res.data.data.serviceRating || 0
+    }
+  })
+}
+
+const getCategoryName = (id: number) => {
+  const categories: Record<number, string> = {
+    1: '电子产品',
+    2: '服装',
+    3: '食品',
+    4: '图书',
+    5: '学习用品',
+    6: '运动器材',
+    7: '美妆护肤',
+    8: '生活用品'
   }
-  return statusMap[status] || '未知'
+  return categories[id] || '其他'
 }
 
 const triggerFileInput = () => {
@@ -241,28 +407,44 @@ const removeImage = (index: number) => {
   uploadedImages.value.splice(index, 1)
 }
 
-const addProduct = () => {
+const addProduct = async () => {
   const formData = new FormData()
-  formData.append('name', productForm.value.name)
-  formData.append('categoryId', String(productForm.value.categoryId))
-  formData.append('originalPrice', String(productForm.value.originalPrice))
-  formData.append('discountPrice', String(productForm.value.discountPrice))
-  formData.append('stock', String(productForm.value.stock))
-  formData.append('unit', productForm.value.unit)
-  formData.append('conditionLevel', productForm.value.conditionLevel)
-  formData.append('isNegotiable', String(productForm.value.isNegotiable))
-  formData.append('description', productForm.value.description)
+  formData.append('name', productForm.name)
+  formData.append('categoryId', String(productForm.categoryId))
+  formData.append('originalPrice', String(productForm.originalPrice))
+  formData.append('discountPrice', String(productForm.discountPrice))
+  formData.append('stock', String(productForm.stock))
+  formData.append('unit', productForm.unit)
+  formData.append('conditionLevel', productForm.conditionLevel)
+  formData.append('isNegotiable', String(productForm.isNegotiable))
+  formData.append('description', productForm.description)
 
-  uploadedImages.value.forEach((img, index) => {
-    if (img.startsWith('blob:')) {
-      fetch(img)
-        .then(res => res.blob())
-        .then(blob => {
-          const file = new File([blob], `product_${index}.jpg`, { type: 'image/jpeg' })
-          formData.append('images', file)
-        })
+  for (let i = 0; i < uploadedImages.value.length; i++) {
+    const img = uploadedImages.value[i]
+    if (img.startsWith('data:')) {
+      const matches = img.match(/^data:([^;]+);base64,(.+)$/)
+      if (matches) {
+        const mimeType = matches[1]
+        const base64Data = matches[2]
+        const binaryString = atob(base64Data)
+        const bytes = new Uint8Array(binaryString.length)
+        for (let j = 0; j < binaryString.length; j++) {
+          bytes[j] = binaryString.charCodeAt(j)
+        }
+        const blob = new Blob([bytes], { type: mimeType })
+        const ext = mimeType.split('/')[1] || 'jpg'
+        const file = new File([blob], `product_${i}.${ext}`, { type: mimeType })
+        formData.append('images', file)
+      }
+    } else if (img.startsWith('blob:')) {
+      const response = await fetch(img)
+      const blob = await response.blob()
+      const mimeType = blob.type || 'image/jpeg'
+      const ext = mimeType.split('/')[1] || 'jpg'
+      const file = new File([blob], `product_${i}.${ext}`, { type: mimeType })
+      formData.append('images', file)
     }
-  })
+  }
 
   axios.post('/api/products/submit', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -270,7 +452,7 @@ const addProduct = () => {
   }).then(res => {
     if (res.data.code === 200) {
       ElMessage.success('发布成功，等待审核')
-      productForm.value = {
+      Object.assign(productForm, {
         name: '',
         categoryId: 1,
         originalPrice: 0,
@@ -280,7 +462,7 @@ const addProduct = () => {
         conditionLevel: '九成新',
         isNegotiable: 0,
         description: ''
-      }
+      })
       uploadedImages.value = []
     } else {
       ElMessage.error(res.data.message || '发布失败')
@@ -290,9 +472,25 @@ const addProduct = () => {
   })
 }
 
+const viewProductDetail = (product: any) => {
+  axios.get(`/api/products/${product.id}/detail`, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      selectedProduct.value = res.data.data.product
+      selectedProduct.value.images = res.data.data.images || []
+      selectedProduct.value.reviews = res.data.data.reviews || []
+      showDetailModal.value = true
+    }
+  })
+}
+
 const editProduct = (product: any) => {
   editingProduct.value = { ...product }
   showEditModal.value = true
+}
+
+const closeDetailModal = () => {
+  showDetailModal.value = false
+  selectedProduct.value = null
 }
 
 const closeEditModal = () => {
@@ -301,41 +499,118 @@ const closeEditModal = () => {
 }
 
 const saveEdit = () => {
+  editingProduct.value.auditStatus = 0
+  editingProduct.value.status = 0
   axios.put(`/api/products/${editingProduct.value.id}`, editingProduct.value, { withCredentials: true }).then(res => {
     if (res.data.code === 200) {
-      ElMessage.success('更新成功')
+      ElMessage.success('更新成功，需重新审核')
       closeEditModal()
-      loadProducts()
+      loadProducts(1)
     }
   })
 }
 
-const offlineProduct = (productId: string) => {
+const offlineProduct = (productId: number) => {
   axios.put(`/api/products/${productId}/offline`, {}, { withCredentials: true }).then(res => {
     if (res.data.code === 200) {
       ElMessage.success('下架成功')
-      loadProducts()
+      loadProducts(1)
     }
   })
 }
 
-const onlineProduct = (productId: string) => {
-  axios.put(`/api/products/${productId}`, { status: 0 }, { withCredentials: true }).then(res => {
+const deleteProduct = (productId: number) => {
+  if (!confirm('确定要删除该商品吗？')) return
+  axios.delete(`/api/products/${productId}`, { withCredentials: true }).then(res => {
     if (res.data.code === 200) {
-      ElMessage.success('已提交审核')
-      loadProducts()
+      ElMessage.success('删除成功')
+      loadProducts(0)
+    } else {
+      ElMessage.error(res.data.message || '删除失败')
     }
   })
+}
+
+const onlineProduct = (productId: number) => {
+  axios.put(`/api/products/${productId}`, { status: 0, auditStatus: 0 }, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('已提交审核')
+      loadProducts(2)
+    }
+  })
+}
+
+const adjustStock = (product: any) => {
+  stockProduct.value = product
+  newStock.value = product.stock
+  showStockModal.value = true
+}
+
+const closeStockModal = () => {
+  showStockModal.value = false
+  stockProduct.value = null
+  newStock.value = 0
+}
+
+const saveStock = () => {
+  axios.put(`/api/products/${stockProduct.value.id}/stock`, { stock: newStock.value }, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('库存调整成功')
+      closeStockModal()
+      loadProducts(1)
+    }
+  })
+}
+
+const replyReview = (reviewId: number) => {
+  if (!replyContent.value.trim()) {
+    ElMessage.warning('请输入回复内容')
+    return
+  }
+  axios.post(`/api/reviews/${reviewId}/reply`, { content: replyContent.value }, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('回复成功')
+      replyContent.value = ''
+      viewProductDetail(selectedProduct.value)
+    }
+  })
+}
+
+const formatTime = (time: string) => {
+  return new Date(time).toLocaleString()
 }
 </script>
 
 <style scoped>
 .merchant-center {
   padding: 2rem;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #333;
+  text-decoration: none;
+}
+
+.btn-back:hover {
+  background-color: #f5f5f5;
 }
 
 .merchant-center h2 {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .tabs {
@@ -349,6 +624,7 @@ const onlineProduct = (productId: string) => {
   cursor: pointer;
   margin-right: 0.5rem;
   border-radius: 4px;
+  font-size: 1rem;
 }
 
 .tabs button.active {
@@ -356,49 +632,135 @@ const onlineProduct = (productId: string) => {
   color: #fff;
 }
 
-.filter-bar {
+.product-tabs {
+  display: flex;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
-.filter-bar select {
-  padding: 0.5rem;
+.product-tabs button {
+  padding: 0.5rem 1rem;
   border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
   border-radius: 4px;
 }
 
-.tab-content table {
-  width: 100%;
-  border-collapse: collapse;
+.product-tabs button.active {
+  background-color: #3498db;
+  color: #fff;
+  border-color: #3498db;
+}
+
+.tab-content {
   background-color: #fff;
+  padding: 1.5rem;
   border-radius: 8px;
 }
 
-.tab-content th, .tab-content td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #eee;
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
 }
 
-.tab-content th {
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.product-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.product-image {
+  height: 200px;
   background-color: #f5f5f5;
 }
 
-.tab-content button {
-  padding: 0.5rem 1rem;
-  margin-right: 0.5rem;
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-info {
+  padding: 1rem;
+}
+
+.product-info h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.price {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.original-price {
+  color: #999;
+  text-decoration: line-through;
+  margin-left: 0.5rem;
+}
+
+.stock {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.product-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.product-actions button {
+  padding: 0.4rem 0.8rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 0.85rem;
 }
 
-.tab-content button:nth-child(1) {
+.btn-detail {
   background-color: #3498db;
   color: #fff;
 }
 
-.tab-content button:nth-child(2) {
+.btn-offline {
   background-color: #e74c3c;
   color: #fff;
+}
+
+.btn-delete {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.btn-online {
+  background-color: #27ae60;
+  color: #fff;
+}
+
+.btn-edit {
+  background-color: #95a5a6;
+  color: #fff;
+}
+
+.btn-stock {
+  background-color: #f39c12;
+  color: #fff;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 }
 
 .form-group {
@@ -417,10 +779,26 @@ const onlineProduct = (productId: string) => {
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .form-group textarea {
   height: 100px;
+}
+
+.required {
+  color: #e74c3c;
+}
+
+.radio-group {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .upload-area {
@@ -489,6 +867,46 @@ const onlineProduct = (productId: string) => {
   cursor: pointer;
 }
 
+.shop-header {
+  margin-bottom: 2rem;
+}
+
+.shop-header h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.service-rating {
+  color: #f39c12;
+  font-size: 1.1rem;
+}
+
+.shop-products {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.shop-product-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.shop-product-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.shop-product-info {
+  padding: 1rem;
+}
+
+.shop-product-info h4 {
+  margin-bottom: 0.3rem;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -499,17 +917,130 @@ const onlineProduct = (productId: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
 }
 
 .modal-content {
   background-color: #fff;
   padding: 1.5rem;
   border-radius: 8px;
-  width: 400px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
 }
 
-.modal-content h3 {
+.modal-content.large {
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-content.small {
+  max-width: 350px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  background-color: #eee;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.product-detail {
+  margin-top: 1rem;
+}
+
+.detail-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.5rem;
   margin-bottom: 1rem;
+}
+
+.detail-images img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.detail-info {
+  margin-bottom: 1.5rem;
+}
+
+.detail-info h4 {
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.review-section {
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.review-section h4 {
+  margin-bottom: 1rem;
+}
+
+.no-reviews {
+  text-align: center;
+  color: #999;
+  padding: 2rem;
+}
+
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.review-item {
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.reviewer {
+  font-weight: bold;
+}
+
+.review-rating {
+  color: #f39c12;
+}
+
+.review-time {
+  margin-left: auto;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.review-content {
+  margin-bottom: 0.5rem;
+}
+
+.review-reply {
+  background-color: #fff;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+
+.reply-label {
+  font-weight: bold;
+  color: #3498db;
 }
 
 .modal-actions {
@@ -535,5 +1066,9 @@ const onlineProduct = (productId: string) => {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.stock-form {
+  margin-top: 1rem;
 }
 </style>

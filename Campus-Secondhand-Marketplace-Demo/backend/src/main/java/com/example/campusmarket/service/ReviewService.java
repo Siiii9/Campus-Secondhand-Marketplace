@@ -37,4 +37,13 @@ public class ReviewService {
         wrapper.eq("to_user_id", buyerId).eq("review_type", "BUYER");
         return reviewMapper.selectList(wrapper);
     }
+
+    public boolean replyReview(Long reviewId, String reply) {
+        Review review = reviewMapper.selectById(reviewId);
+        if (review == null) {
+            return false;
+        }
+        review.setReply(reply);
+        return reviewMapper.updateById(review) > 0;
+    }
 }

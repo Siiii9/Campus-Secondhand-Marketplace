@@ -42,4 +42,17 @@ public class ReviewController {
         List<Review> reviews = reviewService.getMerchantReviews(merchantId);
         return ApiResponse.success(reviews);
     }
+
+    @PostMapping("/{id}/reply")
+    public ApiResponse<?> replyReview(@PathVariable Long id, @RequestBody Review review, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return ApiResponse.error(401, "未登录");
+        }
+        boolean result = reviewService.replyReview(id, review.getReply());
+        if (result) {
+            return ApiResponse.success("回复成功");
+        }
+        return ApiResponse.error("回复失败");
+    }
 }

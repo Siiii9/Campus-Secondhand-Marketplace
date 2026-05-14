@@ -134,6 +134,7 @@
         <thead>
           <tr>
             <th>ID</th>
+            <th>缩略图</th>
             <th>商品名</th>
             <th>商家</th>
             <th>价格</th>
@@ -144,11 +145,13 @@
         <tbody>
           <tr v-for="product in pendingProducts" :key="product.id">
             <td>{{ product.id }}</td>
+            <td><img :src="product.images?.[0] || '/images/default.jpg'" alt="" class="product-thumb" /></td>
             <td>{{ product.name }}</td>
             <td>{{ product.shopName || product.merchantId }}</td>
             <td>¥{{ product.discountPrice }}</td>
             <td>{{ getProductStatus(product.auditStatus) }}</td>
             <td>
+              <button class="btn-detail" @click="showProductDetail(product.id)">查看详情</button>
               <button class="btn-approve" @click="auditProduct(product.id, 1)">通过</button>
               <button class="btn-reject" @click="showProductRejectModal(product.id)">拒绝</button>
             </td>
@@ -258,6 +261,61 @@
         </div>
       </div>
     </div>
+
+    <!-- 商品详情弹窗 -->
+    <div v-if="showProductModal" class="modal-overlay" @click.self="closeProductModal">
+      <div class="modal-content large">
+        <h3>商品详情</h3>
+        <div v-if="productDetail" class="product-detail-modal">
+          <div class="product-images-modal">
+            <img v-for="(img, idx) in productDetail.images" :key="idx" :src="img" alt="" class="product-img" />
+          </div>
+          <div class="product-info-modal">
+            <div class="detail-row">
+              <span class="label">商品名称：</span>
+              <span>{{ productDetail.name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">类别：</span>
+              <span>{{ productDetail.categoryName }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">原价：</span>
+              <span>¥{{ productDetail.originalPrice }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">折后价：</span>
+              <span class="price">¥{{ productDetail.discountPrice }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">尺寸：</span>
+              <span>{{ productDetail.unit || '未填写' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">新旧程度：</span>
+              <span>{{ productDetail.conditionLevel }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">库存：</span>
+              <span>{{ productDetail.stock }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">是否议价：</span>
+              <span>{{ productDetail.isNegotiable === 1 ? '是' : '否' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">使用说明：</span>
+              <p>{{ productDetail.description }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="closeProductModal">关闭</button>
+          <button class="btn-approve" @click="auditProduct(productDetail.id, 1)">通过审核</button>
+          <button class="btn-reject" @click="showProductRejectModal(productDetail.id)">拒绝审核</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -280,12 +338,14 @@ const showModal = ref(false)
 const showMerchantModal = ref(false)
 const showEditModal = ref(false)
 const showLevelModal = ref(false)
+const showProductModal = ref(false)
 
 const rejectReason = ref('')
 const currentAuditId = ref(0)
 const currentProductId = ref(0)
 
 const merchantDetail = ref<any>(null)
+const productDetail = ref<any>(null)
 const editingUser = reactive({})
 const levelUser = reactive({})
 const newLevel = ref(1)
@@ -505,6 +565,21 @@ const showProductRejectModal = (productId: number) => {
   showModal.value = true
 }
 
+const showProductDetail = (productId: number) => {
+  axios.get(`/api/products/${productId}/detail`, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      productDetail.value = res.data.data.product
+      productDetail.value.images = res.data.data.images || []
+      showProductModal.value = true
+    }
+  })
+}
+
+const closeProductModal = () => {
+  showProductModal.value = false
+  productDetail.value = null
+}
+
 const auditProduct = (productId: number, status: number) => {
   axios.post(`/api/products/${productId}/audit`, {}, { 
     params: { status },
@@ -513,6 +588,7 @@ const auditProduct = (productId: number, status: number) => {
     if (res.data.code === 200) {
       ElMessage.success(status === 1 ? '审核通过' : '审核拒绝')
       loadPendingProducts()
+      closeProductModal()
     }
   })
 }
@@ -782,5 +858,47 @@ switchTab('user-audit')
   max-height: 200px;
   border: 1px solid #ddd;
   border-radius: 4px;
+}
+
+.product-thumb {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.product-detail-modal {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.product-images-modal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: 200px;
+}
+
+.product-img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.product-info-modal {
+  flex: 1;
+}
+
+.product-info-modal .price {
+  color: #e74c3c;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.product-info-modal .detail-row p {
+  margin: 0;
+  padding-left: 80px;
 }
 </style>
