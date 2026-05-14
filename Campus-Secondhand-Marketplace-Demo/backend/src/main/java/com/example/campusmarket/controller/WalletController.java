@@ -39,4 +39,13 @@ public class WalletController {
         }
         return ApiResponse.error("充值失败");
     }
+
+    @PostMapping("/admin/recharge")
+    public ApiResponse<?> adminRecharge(@RequestParam Long userId, @RequestParam BigDecimal amount) {
+        boolean result = walletService.adminRecharge(userId, amount);
+        if (result) {
+            return ApiResponse.success("充值成功");
+        }
+        return ApiResponse.error("充值失败");
+    }
 }

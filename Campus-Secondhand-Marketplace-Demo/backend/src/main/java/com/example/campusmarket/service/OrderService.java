@@ -1,5 +1,6 @@
 package com.example.campusmarket.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.campusmarket.entity.*;
 import com.example.campusmarket.mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,26 +39,38 @@ public class OrderService {
     @Autowired
     private MerchantLevelConfigMapper levelConfigMapper;
 
+    @Autowired
+    private UserMapper userMapper;
+
     @Transactional
     public Order createOrder(Long userId, List<Cart> cartItems) {
-        BigDecimal totalAmount = BigDecimal.ZERO;
+        if (cartItems == null || cartItems.isEmpty()) {
+            throw new RuntimeException("购物车为空");
+        }
         
-        Order order = new Order();
-        order.setOrderNo(UUID.randomUUID().toString().replace("-", "").substring(0, 32));
-        order.setUserId(userId);
-        order.setStatus(0);
-        order.setIsReturned(0);
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        Long firstMerchantId = null;
         
         for (Cart item : cartItems) {
             Product product = productMapper.selectById(item.getProductId());
             if (product == null || product.getStock() < item.getQuantity()) {
                 throw new RuntimeException("商品库存不足");
             }
-            order.setMerchantId(product.getMerchantId());
+            if (firstMerchantId == null) {
+                firstMerchantId = product.getMerchantId();
+            } else if (!firstMerchantId.equals(product.getMerchantId())) {
+                throw new RuntimeException("购物车包含多个商家的商品，请分别下单");
+            }
             BigDecimal itemTotal = product.getDiscountPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
             totalAmount = totalAmount.add(itemTotal);
         }
         
+        Order order = new Order();
+        order.setOrderNo(UUID.randomUUID().toString().replace("-", "").substring(0, 32));
+        order.setUserId(userId);
+        order.setMerchantId(firstMerchantId);
+        order.setStatus(0);
+        order.setIsReturned(0);
         order.setTotalAmount(totalAmount);
         
         Points points = pointsMapper.selectById(userId);
@@ -109,7 +122,10 @@ public class OrderService {
             productMapper.updateById(product);
         }
         
-        MerchantLevelConfig config = levelConfigMapper.selectById(1);
+        User merchant = userMapper.selectById(order.getMerchantId());
+        Integer merchantLevel = merchant != null && merchant.getMerchantLevel() != null ? merchant.getMerchantLevel() : 1;
+        
+        MerchantLevelConfig config = levelConfigMapper.selectById(merchantLevel);
         BigDecimal feeRate = config != null ? config.getFeeRate() : BigDecimal.valueOf(0.001);
         BigDecimal fee = actualPaid.multiply(feeRate);
         
@@ -144,7 +160,9 @@ public class OrderService {
     }
 
     public List<Order> getOrdersByUser(Long userId) {
-        return orderMapper.selectList(null);
+        QueryWrapper<Order> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId).orderByDesc("created_at");
+        return orderMapper.selectList(wrapper);
     }
 
     @Transactional
@@ -159,7 +177,9 @@ public class OrderService {
         order.setReturnDeadline(LocalDateTime.now().plusHours(24));
         orderMapper.updateById(order);
         
-        Transaction transaction = transactionMapper.selectOne(null);
+        QueryWrapper<Transaction> txWrapper = new QueryWrapper<>();
+        txWrapper.eq("order_id", orderId);
+        Transaction transaction = transactionMapper.selectOne(txWrapper);
         if (transaction != null && transaction.getStatus() == 0) {
             transaction.setStatus(1);
             transaction.setSettledAt(LocalDateTime.now());

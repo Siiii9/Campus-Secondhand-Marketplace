@@ -230,9 +230,12 @@ CREATE TABLE IF NOT EXISTS `carousel` (
   `sort_order` int DEFAULT '0',
   `status` tinyint DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `merchant_id` bigint DEFAULT NULL,
+  `type` varchar(20) DEFAULT 'ADVERT',
   PRIMARY KEY (`id`),
   KEY `idx_status` (`status`),
-  KEY `idx_sort_order` (`sort_order`)
+  KEY `idx_sort_order` (`sort_order`),
+  KEY `idx_merchant_id` (`merchant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 INSERT INTO `merchant_level_config` (`level`, `fee_rate`, `min_transaction_amount`, `min_satisfaction`) VALUES

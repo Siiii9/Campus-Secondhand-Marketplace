@@ -23,4 +23,8 @@ public class Carousel {
     private Integer status;
 
     private LocalDateTime createdAt;
+
+    private Long merchantId;
+
+    private String type;
 }
