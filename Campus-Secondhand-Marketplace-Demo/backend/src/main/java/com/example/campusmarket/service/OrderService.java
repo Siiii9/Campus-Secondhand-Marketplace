@@ -1,8 +1,10 @@
 package com.example.campusmarket.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.campusmarket.entity.*;
 import com.example.campusmarket.mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,9 @@ public class OrderService {
 
     @Autowired
     private MerchantLevelConfigMapper levelConfigMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Transactional
     public Order createOrder(Long userId, List<Cart> cartItems) {
@@ -109,7 +114,9 @@ public class OrderService {
             productMapper.updateById(product);
         }
         
-        MerchantLevelConfig config = levelConfigMapper.selectById(1);
+        User merchant = userMapper.selectById(order.getMerchantId());
+        int merchantLevel = merchant != null && merchant.getMerchantLevel() != null ? merchant.getMerchantLevel() : 1;
+        MerchantLevelConfig config = levelConfigMapper.selectById(merchantLevel);
         BigDecimal feeRate = config != null ? config.getFeeRate() : BigDecimal.valueOf(0.001);
         BigDecimal fee = actualPaid.multiply(feeRate);
         
@@ -144,7 +151,9 @@ public class OrderService {
     }
 
     public List<Order> getOrdersByUser(Long userId) {
-        return orderMapper.selectList(null);
+        QueryWrapper<Order> wrapper = new QueryWrapper<>();
+        wrapper.eq("user_id", userId);
+        return orderMapper.selectList(wrapper);
     }
 
     @Transactional
@@ -159,7 +168,9 @@ public class OrderService {
         order.setReturnDeadline(LocalDateTime.now().plusHours(24));
         orderMapper.updateById(order);
         
-        Transaction transaction = transactionMapper.selectOne(null);
+        QueryWrapper<Transaction> transactionWrapper = new QueryWrapper<>();
+        transactionWrapper.eq("order_id", orderId);
+        Transaction transaction = transactionMapper.selectOne(transactionWrapper);
         if (transaction != null && transaction.getStatus() == 0) {
             transaction.setStatus(1);
             transaction.setSettledAt(LocalDateTime.now());
@@ -193,5 +204,18 @@ public class OrderService {
         pointsRecordMapper.insert(record);
         
         return true;
+    }
+
+    @Scheduled(fixedRate = 86400000)
+    @Transactional
+    public void autoConfirmReceipt() {
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        QueryWrapper<Order> wrapper = new QueryWrapper<>();
+        wrapper.eq("status", 1).lt("paid_at", sevenDaysAgo);
+        List<Order> orders = orderMapper.selectList(wrapper);
+        
+        for (Order order : orders) {
+            confirmReceipt(order.getId());
+        }
     }
 }

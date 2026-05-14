@@ -42,4 +42,14 @@ public class ReviewController {
         List<Review> reviews = reviewService.getMerchantReviews(merchantId);
         return ApiResponse.success(reviews);
     }
+
+    @GetMapping("/merchant/{merchantId}/rating")
+    public ApiResponse<?> getMerchantRating(@PathVariable Long merchantId) {
+        return ApiResponse.success(reviewService.getMerchantRating(merchantId));
+    }
+
+    @GetMapping("/product/{productId}/rating")
+    public ApiResponse<?> getProductRating(@PathVariable Long productId) {
+        return ApiResponse.success(reviewService.getProductRating(productId));
+    }
 }
