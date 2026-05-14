@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.campusmarket.entity.*;
 import com.example.campusmarket.mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,33 +45,24 @@ public class OrderService {
 
     @Transactional
     public Order createOrder(Long userId, List<Cart> cartItems) {
-        if (cartItems == null || cartItems.isEmpty()) {
-            throw new RuntimeException("购物车为空");
-        }
-        
         BigDecimal totalAmount = BigDecimal.ZERO;
-        Long firstMerchantId = null;
+        
+        Order order = new Order();
+        order.setOrderNo(UUID.randomUUID().toString().replace("-", "").substring(0, 32));
+        order.setUserId(userId);
+        order.setStatus(0);
+        order.setIsReturned(0);
         
         for (Cart item : cartItems) {
             Product product = productMapper.selectById(item.getProductId());
             if (product == null || product.getStock() < item.getQuantity()) {
                 throw new RuntimeException("商品库存不足");
             }
-            if (firstMerchantId == null) {
-                firstMerchantId = product.getMerchantId();
-            } else if (!firstMerchantId.equals(product.getMerchantId())) {
-                throw new RuntimeException("购物车包含多个商家的商品，请分别下单");
-            }
+            order.setMerchantId(product.getMerchantId());
             BigDecimal itemTotal = product.getDiscountPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
             totalAmount = totalAmount.add(itemTotal);
         }
         
-        Order order = new Order();
-        order.setOrderNo(UUID.randomUUID().toString().replace("-", "").substring(0, 32));
-        order.setUserId(userId);
-        order.setMerchantId(firstMerchantId);
-        order.setStatus(0);
-        order.setIsReturned(0);
         order.setTotalAmount(totalAmount);
         
         Points points = pointsMapper.selectById(userId);
@@ -123,8 +115,7 @@ public class OrderService {
         }
         
         User merchant = userMapper.selectById(order.getMerchantId());
-        Integer merchantLevel = merchant != null && merchant.getMerchantLevel() != null ? merchant.getMerchantLevel() : 1;
-        
+        int merchantLevel = merchant != null && merchant.getMerchantLevel() != null ? merchant.getMerchantLevel() : 1;
         MerchantLevelConfig config = levelConfigMapper.selectById(merchantLevel);
         BigDecimal feeRate = config != null ? config.getFeeRate() : BigDecimal.valueOf(0.001);
         BigDecimal fee = actualPaid.multiply(feeRate);
@@ -161,7 +152,7 @@ public class OrderService {
 
     public List<Order> getOrdersByUser(Long userId) {
         QueryWrapper<Order> wrapper = new QueryWrapper<>();
-        wrapper.eq("user_id", userId).orderByDesc("created_at");
+        wrapper.eq("user_id", userId);
         return orderMapper.selectList(wrapper);
     }
 
@@ -177,9 +168,9 @@ public class OrderService {
         order.setReturnDeadline(LocalDateTime.now().plusHours(24));
         orderMapper.updateById(order);
         
-        QueryWrapper<Transaction> txWrapper = new QueryWrapper<>();
-        txWrapper.eq("order_id", orderId);
-        Transaction transaction = transactionMapper.selectOne(txWrapper);
+        QueryWrapper<Transaction> transactionWrapper = new QueryWrapper<>();
+        transactionWrapper.eq("order_id", orderId);
+        Transaction transaction = transactionMapper.selectOne(transactionWrapper);
         if (transaction != null && transaction.getStatus() == 0) {
             transaction.setStatus(1);
             transaction.setSettledAt(LocalDateTime.now());
@@ -213,5 +204,18 @@ public class OrderService {
         pointsRecordMapper.insert(record);
         
         return true;
+    }
+
+    @Scheduled(fixedRate = 86400000)
+    @Transactional
+    public void autoConfirmReceipt() {
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        QueryWrapper<Order> wrapper = new QueryWrapper<>();
+        wrapper.eq("status", 1).lt("paid_at", sevenDaysAgo);
+        List<Order> orders = orderMapper.selectList(wrapper);
+        
+        for (Order order : orders) {
+            confirmReceipt(order.getId());
+        }
     }
 }

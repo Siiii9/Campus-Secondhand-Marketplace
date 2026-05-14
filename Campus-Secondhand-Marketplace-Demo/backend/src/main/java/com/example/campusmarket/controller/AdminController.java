@@ -2,10 +2,13 @@ package com.example.campusmarket.controller;
 
 import com.example.campusmarket.dto.ApiResponse;
 import com.example.campusmarket.entity.User;
+import com.example.campusmarket.entity.Wallet;
 import com.example.campusmarket.service.UserService;
+import com.example.campusmarket.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -14,6 +17,9 @@ public class AdminController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private WalletService walletService;
 
     @GetMapping("/users")
     public ApiResponse<?> getAllUsers() {
@@ -56,5 +62,15 @@ public class AdminController {
             return ApiResponse.success(status == 1 ? "审核通过" : "审核拒绝");
         }
         return ApiResponse.error("审核失败");
+    }
+
+    @PostMapping("/wallet/recharge")
+    public ApiResponse<?> rechargeUserWallet(@RequestParam Long userId, @RequestParam BigDecimal amount) {
+        boolean result = walletService.recharge(userId, amount);
+        if (result) {
+            Wallet wallet = walletService.getWalletByUserId(userId);
+            return ApiResponse.success("充值成功", wallet);
+        }
+        return ApiResponse.error("充值失败");
     }
 }

@@ -34,13 +34,6 @@ public class WalletService {
         return walletMapper.updateById(wallet) > 0;
     }
 
-    public boolean adminRecharge(Long userId, BigDecimal amount) {
-        Wallet wallet = getWalletByUserId(userId);
-        wallet.setBalance(wallet.getBalance().add(amount));
-        wallet.setUpdatedAt(LocalDateTime.now());
-        return walletMapper.updateById(wallet) > 0;
-    }
-
     public boolean deduct(Long userId, BigDecimal amount) {
         Wallet wallet = getWalletByUserId(userId);
         if (wallet.getBalance().compareTo(amount) < 0) {

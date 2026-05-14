@@ -21,18 +21,6 @@ public class CarouselService {
         return carouselMapper.selectList(wrapper);
     }
 
-    public List<Carousel> getCarouselsByType(String type) {
-        QueryWrapper<Carousel> wrapper = new QueryWrapper<>();
-        wrapper.eq("status", 1).eq("type", type).orderByAsc("sort_order");
-        return carouselMapper.selectList(wrapper);
-    }
-
-    public List<Carousel> getMerchantCarousels(Long merchantId) {
-        QueryWrapper<Carousel> wrapper = new QueryWrapper<>();
-        wrapper.eq("status", 1).eq("merchant_id", merchantId).orderByAsc("sort_order");
-        return carouselMapper.selectList(wrapper);
-    }
-
     public boolean addCarousel(Carousel carousel) {
         carousel.setCreatedAt(LocalDateTime.now());
         return carouselMapper.insert(carousel) > 0;

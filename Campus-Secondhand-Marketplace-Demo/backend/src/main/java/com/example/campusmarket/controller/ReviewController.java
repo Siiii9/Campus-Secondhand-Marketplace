@@ -52,9 +52,4 @@ public class ReviewController {
     public ApiResponse<?> getProductRating(@PathVariable Long productId) {
         return ApiResponse.success(reviewService.getProductRating(productId));
     }
-
-    @GetMapping("/buyer/{buyerId}/rating")
-    public ApiResponse<?> getBuyerRating(@PathVariable Long buyerId) {
-        return ApiResponse.success(reviewService.getBuyerRating(buyerId));
-    }
 }

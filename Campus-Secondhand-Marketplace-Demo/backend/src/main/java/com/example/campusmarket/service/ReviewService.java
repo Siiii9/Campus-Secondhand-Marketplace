@@ -46,31 +46,40 @@ public class ReviewService {
         Map<String, Object> result = new HashMap<>();
         
         QueryWrapper<Review> wrapper = new QueryWrapper<>();
-        wrapper.eq("to_user_id", merchantId).eq("review_type", "MERCHANT_SERVICE");
-        List<Review> reviews = reviewMapper.selectList(wrapper);
+        wrapper.eq("to_user_id", merchantId);
         
-        int totalReviews = reviews.size();
-        int positiveReviews = 0;
-        int totalRating = 0;
+        List<Review> reviews = reviewMapper.selectList(wrapper);
+        int totalCount = reviews.size();
+        
+        if (totalCount == 0) {
+            result.put("totalCount", 0);
+            result.put("avgRating", 0.0);
+            result.put("positiveRate", 0.0);
+            return result;
+        }
+        
+        int sumRating = 0;
+        int positiveCount = 0;
         
         for (Review review : reviews) {
-            if (review.getRating() != null) {
-                totalRating += review.getRating();
-                if (review.getRating() >= 4) {
-                    positiveReviews++;
+            Integer rating = review.getRating();
+            if (rating != null) {
+                sumRating += rating;
+                if (rating >= 4) {
+                    positiveCount++;
                 }
             }
         }
         
-        BigDecimal avgRating = totalReviews > 0 ? 
-            BigDecimal.valueOf(totalRating).divide(BigDecimal.valueOf(totalReviews), 1, RoundingMode.HALF_UP) : 
-            BigDecimal.ZERO;
+        double avgRating = totalCount > 0 ? BigDecimal.valueOf(sumRating)
+                .divide(BigDecimal.valueOf(totalCount), 1, RoundingMode.HALF_UP)
+                .doubleValue() : 0.0;
         
-        BigDecimal positiveRate = totalReviews > 0 ? 
-            BigDecimal.valueOf(positiveReviews).divide(BigDecimal.valueOf(totalReviews), 4, RoundingMode.HALF_UP) : 
-            BigDecimal.ZERO;
+        double positiveRate = totalCount > 0 ? BigDecimal.valueOf(positiveCount)
+                .divide(BigDecimal.valueOf(totalCount), 4, RoundingMode.HALF_UP)
+                .doubleValue() : 0.0;
         
-        result.put("totalReviews", totalReviews);
+        result.put("totalCount", totalCount);
         result.put("avgRating", avgRating);
         result.put("positiveRate", positiveRate);
         
@@ -81,66 +90,40 @@ public class ReviewService {
         Map<String, Object> result = new HashMap<>();
         
         QueryWrapper<Review> wrapper = new QueryWrapper<>();
-        wrapper.eq("product_id", productId).eq("review_type", "PRODUCT");
-        List<Review> reviews = reviewMapper.selectList(wrapper);
+        wrapper.eq("product_id", productId);
         
-        int totalReviews = reviews.size();
-        int positiveReviews = 0;
-        int totalRating = 0;
+        List<Review> reviews = reviewMapper.selectList(wrapper);
+        int totalCount = reviews.size();
+        
+        if (totalCount == 0) {
+            result.put("totalCount", 0);
+            result.put("avgRating", 0.0);
+            result.put("positiveRate", 0.0);
+            return result;
+        }
+        
+        int sumRating = 0;
+        int positiveCount = 0;
         
         for (Review review : reviews) {
-            if (review.getRating() != null) {
-                totalRating += review.getRating();
-                if (review.getRating() >= 4) {
-                    positiveReviews++;
+            Integer rating = review.getRating();
+            if (rating != null) {
+                sumRating += rating;
+                if (rating >= 4) {
+                    positiveCount++;
                 }
             }
         }
         
-        BigDecimal avgRating = totalReviews > 0 ? 
-            BigDecimal.valueOf(totalRating).divide(BigDecimal.valueOf(totalReviews), 1, RoundingMode.HALF_UP) : 
-            BigDecimal.ZERO;
+        double avgRating = totalCount > 0 ? BigDecimal.valueOf(sumRating)
+                .divide(BigDecimal.valueOf(totalCount), 1, RoundingMode.HALF_UP)
+                .doubleValue() : 0.0;
         
-        BigDecimal positiveRate = totalReviews > 0 ? 
-            BigDecimal.valueOf(positiveReviews).divide(BigDecimal.valueOf(totalReviews), 4, RoundingMode.HALF_UP) : 
-            BigDecimal.ZERO;
+        double positiveRate = totalCount > 0 ? BigDecimal.valueOf(positiveCount)
+                .divide(BigDecimal.valueOf(totalCount), 4, RoundingMode.HALF_UP)
+                .doubleValue() : 0.0;
         
-        result.put("totalReviews", totalReviews);
-        result.put("avgRating", avgRating);
-        result.put("positiveRate", positiveRate);
-        
-        return result;
-    }
-
-    public Map<String, Object> getBuyerRating(Long buyerId) {
-        Map<String, Object> result = new HashMap<>();
-        
-        QueryWrapper<Review> wrapper = new QueryWrapper<>();
-        wrapper.eq("to_user_id", buyerId).eq("review_type", "BUYER");
-        List<Review> reviews = reviewMapper.selectList(wrapper);
-        
-        int totalReviews = reviews.size();
-        int positiveReviews = 0;
-        int totalRating = 0;
-        
-        for (Review review : reviews) {
-            if (review.getRating() != null) {
-                totalRating += review.getRating();
-                if (review.getRating() >= 4) {
-                    positiveReviews++;
-                }
-            }
-        }
-        
-        BigDecimal avgRating = totalReviews > 0 ? 
-            BigDecimal.valueOf(totalRating).divide(BigDecimal.valueOf(totalReviews), 1, RoundingMode.HALF_UP) : 
-            BigDecimal.ZERO;
-        
-        BigDecimal positiveRate = totalReviews > 0 ? 
-            BigDecimal.valueOf(positiveReviews).divide(BigDecimal.valueOf(totalReviews), 4, RoundingMode.HALF_UP) : 
-            BigDecimal.ZERO;
-        
-        result.put("totalReviews", totalReviews);
+        result.put("totalCount", totalCount);
         result.put("avgRating", avgRating);
         result.put("positiveRate", positiveRate);
         

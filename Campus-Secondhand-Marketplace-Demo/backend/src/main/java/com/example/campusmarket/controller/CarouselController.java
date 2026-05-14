@@ -21,18 +21,6 @@ public class CarouselController {
         return ApiResponse.success(carousels);
     }
 
-    @GetMapping("/type/{type}")
-    public ApiResponse<?> getCarouselsByType(@PathVariable String type) {
-        List<Carousel> carousels = carouselService.getCarouselsByType(type);
-        return ApiResponse.success(carousels);
-    }
-
-    @GetMapping("/merchant/{merchantId}")
-    public ApiResponse<?> getMerchantCarousels(@PathVariable Long merchantId) {
-        List<Carousel> carousels = carouselService.getMerchantCarousels(merchantId);
-        return ApiResponse.success(carousels);
-    }
-
     @PostMapping
     public ApiResponse<?> addCarousel(@RequestBody Carousel carousel) {
         boolean result = carouselService.addCarousel(carousel);
