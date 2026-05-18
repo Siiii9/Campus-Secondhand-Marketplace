@@ -22,6 +22,8 @@ public class ReturnRequest {
 
     private Integer status;
 
+    private Long auditorId;
+
     private LocalDateTime auditTime;
 
     private LocalDateTime createdAt;
