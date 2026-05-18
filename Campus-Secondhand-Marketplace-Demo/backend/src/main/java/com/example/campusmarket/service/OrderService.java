@@ -44,106 +44,128 @@ public class OrderService {
     private UserMapper userMapper;
 
     @Transactional
-    public Order createOrder(Long userId, List<Cart> cartItems) {
-        BigDecimal totalAmount = BigDecimal.ZERO;
-        
-        Order order = new Order();
-        order.setOrderNo(UUID.randomUUID().toString().replace("-", "").substring(0, 32));
-        order.setUserId(userId);
-        order.setStatus(0);
-        order.setIsReturned(0);
-        
+    public List<Order> createOrder(Long userId, List<Cart> cartItems) {
+        Map<Long, List<Cart>> cartByMerchant = new java.util.HashMap<>();
         for (Cart item : cartItems) {
             Product product = productMapper.selectById(item.getProductId());
             if (product == null || product.getStock() < item.getQuantity()) {
                 throw new RuntimeException("商品库存不足");
             }
-            order.setMerchantId(product.getMerchantId());
-            BigDecimal itemTotal = product.getDiscountPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
-            totalAmount = totalAmount.add(itemTotal);
+            cartByMerchant.computeIfAbsent(product.getMerchantId(), k -> new java.util.ArrayList<>()).add(item);
         }
-        
-        order.setTotalAmount(totalAmount);
-        
+
+        List<Order> orders = new java.util.ArrayList<>();
+        Wallet wallet = walletMapper.selectById(userId);
+        if (wallet == null) {
+            wallet = new Wallet();
+            wallet.setUserId(userId);
+            wallet.setBalance(BigDecimal.ZERO);
+            wallet.setFrozenBalance(BigDecimal.ZERO);
+            walletMapper.insert(wallet);
+        }
+
         Points points = pointsMapper.selectById(userId);
         int availablePoints = points != null ? points.getPoints() : 0;
-        int pointsToDeduct = Math.min(availablePoints, totalAmount.intValue() * 100);
-        BigDecimal deductAmount = BigDecimal.valueOf(pointsToDeduct).divide(BigDecimal.valueOf(100));
-        
-        order.setPointsDeducted(pointsToDeduct);
-        order.setPointsDeductAmount(deductAmount);
-        BigDecimal actualPaid = totalAmount.subtract(deductAmount);
-        order.setActualPaid(actualPaid);
-        
-        Wallet wallet = walletMapper.selectById(userId);
-        if (wallet == null || wallet.getBalance().compareTo(actualPaid) < 0) {
-            throw new RuntimeException("钱包余额不足");
+
+        for (Map.Entry<Long, List<Cart>> entry : cartByMerchant.entrySet()) {
+            Long merchantId = entry.getKey();
+            List<Cart> merchantCartItems = entry.getValue();
+            BigDecimal totalAmount = BigDecimal.ZERO;
+
+            Order order = new Order();
+            order.setOrderNo(UUID.randomUUID().toString().replace("-", "").substring(0, 32));
+            order.setUserId(userId);
+            order.setMerchantId(merchantId);
+            order.setStatus(0);
+            order.setIsReturned(0);
+
+            for (Cart item : merchantCartItems) {
+                Product product = productMapper.selectById(item.getProductId());
+                BigDecimal itemTotal = product.getDiscountPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+                totalAmount = totalAmount.add(itemTotal);
+            }
+
+            order.setTotalAmount(totalAmount);
+
+            int pointsToDeduct = Math.min(availablePoints, totalAmount.intValue() * 100);
+            BigDecimal deductAmount = BigDecimal.valueOf(pointsToDeduct).divide(BigDecimal.valueOf(100));
+
+            order.setPointsDeducted(pointsToDeduct);
+            order.setPointsDeductAmount(deductAmount);
+            BigDecimal actualPaid = totalAmount.subtract(deductAmount);
+            order.setActualPaid(actualPaid);
+
+            if (wallet.getBalance().compareTo(actualPaid) < 0) {
+                throw new RuntimeException("钱包余额不足");
+            }
+
+            wallet.setBalance(wallet.getBalance().subtract(actualPaid));
+            walletMapper.updateById(wallet);
+
+            if (pointsToDeduct > 0 && points != null) {
+                points.setPoints(points.getPoints() - pointsToDeduct);
+                pointsMapper.updateById(points);
+
+                PointsRecord record = new PointsRecord();
+                record.setUserId(userId);
+                record.setChangeAmount(-pointsToDeduct);
+                record.setReason("抵扣现金");
+                record.setCreatedAt(LocalDateTime.now());
+                pointsRecordMapper.insert(record);
+            }
+
+            order.setStatus(1);
+            order.setPaidAt(LocalDateTime.now());
+            orderMapper.insert(order);
+
+            for (Cart item : merchantCartItems) {
+                Product product = productMapper.selectById(item.getProductId());
+
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrderId(order.getId());
+                orderItem.setProductId(item.getProductId());
+                orderItem.setQuantity(item.getQuantity());
+                orderItem.setPrice(product.getDiscountPrice());
+                orderItemMapper.insert(orderItem);
+
+                product.setStock(product.getStock() - item.getQuantity());
+                product.setStatus(3);
+                productMapper.updateById(product);
+            }
+
+            User merchant = userMapper.selectById(merchantId);
+            int merchantLevel = merchant != null && merchant.getMerchantLevel() != null ? merchant.getMerchantLevel() : 1;
+            MerchantLevelConfig config = levelConfigMapper.selectById(merchantLevel);
+            BigDecimal feeRate = config != null ? config.getFeeRate() : BigDecimal.valueOf(0.001);
+            BigDecimal fee = actualPaid.multiply(feeRate);
+
+            Transaction transaction = new Transaction();
+            transaction.setOrderId(order.getId());
+            transaction.setMerchantId(merchantId);
+            transaction.setBuyerId(userId);
+            transaction.setAmount(actualPaid);
+            transaction.setFee(fee);
+            transaction.setFeeRate(feeRate);
+            transaction.setNetAmount(actualPaid.subtract(fee));
+            transaction.setStatus(0);
+            transaction.setCreatedAt(LocalDateTime.now());
+            transactionMapper.insert(transaction);
+
+            Wallet merchantWallet = walletMapper.selectById(merchantId);
+            if (merchantWallet == null) {
+                merchantWallet = new Wallet();
+                merchantWallet.setUserId(merchantId);
+                merchantWallet.setBalance(BigDecimal.ZERO);
+                merchantWallet.setFrozenBalance(BigDecimal.ZERO);
+                walletMapper.insert(merchantWallet);
+            }
+            merchantWallet.setFrozenBalance(merchantWallet.getFrozenBalance().add(actualPaid.subtract(fee)));
+            walletMapper.updateById(merchantWallet);
+
+            orders.add(order);
         }
-        
-        wallet.setBalance(wallet.getBalance().subtract(actualPaid));
-        walletMapper.updateById(wallet);
-        
-        if (pointsToDeduct > 0) {
-            points.setPoints(points.getPoints() - pointsToDeduct);
-            pointsMapper.updateById(points);
-            
-            PointsRecord record = new PointsRecord();
-            record.setUserId(userId);
-            record.setChangeAmount(-pointsToDeduct);
-            record.setReason("抵扣现金");
-            record.setCreatedAt(LocalDateTime.now());
-            pointsRecordMapper.insert(record);
-        }
-        
-        order.setStatus(1);
-        order.setPaidAt(LocalDateTime.now());
-        orderMapper.insert(order);
-        
-        for (Cart item : cartItems) {
-            Product product = productMapper.selectById(item.getProductId());
-            
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrderId(order.getId());
-            orderItem.setProductId(item.getProductId());
-            orderItem.setQuantity(item.getQuantity());
-            orderItem.setPrice(product.getDiscountPrice());
-            orderItemMapper.insert(orderItem);
-            
-            product.setStock(product.getStock() - item.getQuantity());
-            product.setStatus(3);
-            productMapper.updateById(product);
-        }
-        
-        User merchant = userMapper.selectById(order.getMerchantId());
-        int merchantLevel = merchant != null && merchant.getMerchantLevel() != null ? merchant.getMerchantLevel() : 1;
-        MerchantLevelConfig config = levelConfigMapper.selectById(merchantLevel);
-        BigDecimal feeRate = config != null ? config.getFeeRate() : BigDecimal.valueOf(0.001);
-        BigDecimal fee = actualPaid.multiply(feeRate);
-        
-        Transaction transaction = new Transaction();
-        transaction.setOrderId(order.getId());
-        transaction.setMerchantId(order.getMerchantId());
-        transaction.setBuyerId(userId);
-        transaction.setAmount(actualPaid);
-        transaction.setFee(fee);
-        transaction.setFeeRate(feeRate);
-        transaction.setNetAmount(actualPaid.subtract(fee));
-        transaction.setStatus(0);
-        transaction.setCreatedAt(LocalDateTime.now());
-        transactionMapper.insert(transaction);
-        
-        Wallet merchantWallet = walletMapper.selectById(order.getMerchantId());
-        if (merchantWallet == null) {
-            merchantWallet = new Wallet();
-            merchantWallet.setUserId(order.getMerchantId());
-            merchantWallet.setBalance(BigDecimal.ZERO);
-            merchantWallet.setFrozenBalance(BigDecimal.ZERO);
-            walletMapper.insert(merchantWallet);
-        }
-        merchantWallet.setFrozenBalance(merchantWallet.getFrozenBalance().add(actualPaid.subtract(fee)));
-        walletMapper.updateById(merchantWallet);
-        
-        return order;
+
+        return orders;
     }
 
     public Order getOrderById(Long id) {
