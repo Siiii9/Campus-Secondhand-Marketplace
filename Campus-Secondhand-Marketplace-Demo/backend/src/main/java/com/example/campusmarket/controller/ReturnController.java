@@ -29,11 +29,15 @@ public class ReturnController {
     }
 
     @PostMapping("/{id}/audit")
-    public ApiResponse<?> auditReturn(@PathVariable Long id, @RequestParam Integer status) {
-        boolean result = returnService.auditReturn(id, status);
+    public ApiResponse<?> auditReturn(@PathVariable Long id, @RequestParam Integer status, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return ApiResponse.error(401, "未登录");
+        }
+        boolean result = returnService.auditReturn(id, status, user.getId());
         if (result) {
             return ApiResponse.success(status == 1 ? "退货审核通过" : "退货审核拒绝");
         }
-        return ApiResponse.error("审核失败");
+        return ApiResponse.error("审核失败，仅商家可审核自己店铺的退货申请");
     }
 }
