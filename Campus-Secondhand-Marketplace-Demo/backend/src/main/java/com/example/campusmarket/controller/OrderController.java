@@ -35,9 +35,9 @@ public class OrderController {
         }
 
         try {
-            Order order = orderService.createOrder(user.getId(), cartItems);
+            List<Order> orders = orderService.createOrder(user.getId(), cartItems);
             cartService.clearCart(user.getId());
-            return ApiResponse.success(order);
+            return ApiResponse.success(orders);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
