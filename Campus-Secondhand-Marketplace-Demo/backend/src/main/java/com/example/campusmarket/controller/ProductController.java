@@ -63,6 +63,9 @@ public class ProductController {
         if (!"MERCHANT".equals(user.getRole())) {
             return ApiResponse.error("只有商家可以发布商品");
         }
+        if (user.getShopStatus() != null && user.getShopStatus() == 0) {
+            return ApiResponse.error("您的店铺已被管理员关闭，无法发布新商品");
+        }
 
         Product product = new Product();
         product.setMerchantId(user.getId());
@@ -298,7 +301,7 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer status) {
         
-        Page<Product> products = productService.getShopProducts(merchantId, status, page, size);
+        Page<Map<String, Object>> products = productService.getShopProducts(merchantId, status, page, size);
         return ApiResponse.success(products);
     }
 
@@ -324,7 +327,7 @@ public class ProductController {
             return ApiResponse.error(401, "未登录");
         }
         
-        Page<Product> products = productService.getShopProducts(user.getId(), 1, page, size);
+        Page<Map<String, Object>> products = productService.getShopProducts(user.getId(), 1, page, size);
         return ApiResponse.success(products);
     }
 }

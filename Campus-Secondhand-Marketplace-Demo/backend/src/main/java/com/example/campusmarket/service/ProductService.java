@@ -66,6 +66,8 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
             wrapper.eq("status", 1);
         }
         
+        wrapper.inSql("merchant_id", "SELECT id FROM user WHERE shop_status IS NULL OR shop_status != 0");
+        
         if ("price".equals(sortBy)) {
             wrapper.orderByAsc("discount_price");
         } else if ("sales".equals(sortBy)) {
@@ -159,7 +161,7 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
         return productMapper.deleteById(id) > 0;
     }
 
-    public Page<Product> getShopProducts(Long merchantId, Integer status, int page, int size) {
+    public Page<Map<String, Object>> getShopProducts(Long merchantId, Integer status, int page, int size) {
         Page<Product> pageInfo = new Page<>(page, size);
         QueryWrapper<Product> wrapper = new QueryWrapper<>();
         wrapper.eq("merchant_id", merchantId);
@@ -169,7 +171,34 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
         }
         
         wrapper.orderByDesc("created_at");
-        return productMapper.selectPage(pageInfo, wrapper);
+        Page<Product> productPage = productMapper.selectPage(pageInfo, wrapper);
+        
+        Page<Map<String, Object>> resultPage = new Page<>(page, size);
+        resultPage.setTotal(productPage.getTotal());
+        resultPage.setPages(productPage.getPages());
+        
+        List<Map<String, Object>> resultList = productPage.getRecords().stream().map(product -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", product.getId());
+            map.put("name", product.getName());
+            map.put("originalPrice", product.getOriginalPrice());
+            map.put("discountPrice", product.getDiscountPrice());
+            map.put("stock", product.getStock());
+            map.put("salesCount", product.getSalesCount());
+            map.put("status", product.getStatus());
+            
+            QueryWrapper<ProductImage> imageWrapper = new QueryWrapper<>();
+            imageWrapper.eq("product_id", product.getId());
+            imageWrapper.orderByAsc("sort_order");
+            List<ProductImage> images = productImageMapper.selectList(imageWrapper);
+            List<String> imageUrls = images.stream().map(ProductImage::getImageUrl).toList();
+            map.put("images", imageUrls);
+            
+            return map;
+        }).toList();
+        
+        resultPage.setRecords(resultList);
+        return resultPage;
     }
 
     public boolean updateStock(Long productId, Integer quantity) {

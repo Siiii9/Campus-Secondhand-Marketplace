@@ -479,7 +479,12 @@ const viewProductDetail = (product: any) => {
       selectedProduct.value.images = res.data.data.images || []
       selectedProduct.value.reviews = res.data.data.reviews || []
       showDetailModal.value = true
+    } else {
+      ElMessage.error(res.data.message || '获取商品详情失败')
     }
+  }).catch(err => {
+    console.error('获取商品详情错误:', err)
+    ElMessage.error('服务器错误: ' + (err.response?.data?.message || err.message || '请稍后重试'))
   })
 }
 

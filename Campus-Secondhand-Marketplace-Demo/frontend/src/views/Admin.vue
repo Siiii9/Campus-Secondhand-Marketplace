@@ -117,7 +117,8 @@
             <td>
               <button class="btn-edit" @click="showUserEdit(user)">编辑</button>
               <button v-if="user.role === 'MERCHANT'" class="btn-level" @click="openLevelModal(user)">调整等级</button>
-              <button v-if="user.role === 'MERCHANT'" class="btn-close-shop" @click="closeShop(user.id)">关闭店铺</button>
+              <button v-if="user.role === 'MERCHANT' && user.shopStatus !== 0" class="btn-close-shop" @click="closeShop(user.id)">关闭店铺</button>
+              <button v-if="user.role === 'MERCHANT' && user.shopStatus === 0" class="btn-open-shop" @click="openShop(user.id)">恢复店铺</button>
               <button class="btn-delete" @click="deleteUser(user.id)">删除</button>
             </td>
           </tr>
@@ -548,6 +549,17 @@ const closeShop = (userId: number) => {
   }
 }
 
+const openShop = (userId: number) => {
+  if (confirm('确定要恢复该商家店铺吗？')) {
+    axios.post(`/api/admin/users/${userId}/open-shop`, {}, { withCredentials: true }).then(res => {
+      if (res.data.code === 200) {
+        ElMessage.success('店铺已恢复')
+        loadUserList()
+      }
+    })
+  }
+}
+
 const deleteUser = (userId: number) => {
   if (confirm('确定要删除该用户吗？')) {
     axios.delete(`/api/admin/users/${userId}`, { withCredentials: true }).then(res => {
@@ -571,7 +583,12 @@ const showProductDetail = (productId: number) => {
       productDetail.value = res.data.data.product
       productDetail.value.images = res.data.data.images || []
       showProductModal.value = true
+    } else {
+      ElMessage.error(res.data.message || '获取商品详情失败')
     }
+  }).catch(err => {
+    console.error('获取商品详情错误:', err)
+    ElMessage.error('服务器错误: ' + (err.response?.data?.message || err.message || '请稍后重试'))
   })
 }
 
@@ -740,6 +757,11 @@ switchTab('user-audit')
   color: #fff;
 }
 
+.btn-open-shop {
+  background-color: #27ae60;
+  color: #fff;
+}
+
 .btn-delete {
   background-color: #95a5a6;
   color: #fff;
@@ -782,6 +804,8 @@ switchTab('user-audit')
 
 .modal-content.large {
   width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .modal-content h3 {

@@ -111,4 +111,13 @@ public class AdminController {
         }
         return ApiResponse.error("关闭店铺失败");
     }
+    
+    @PostMapping("/users/{id}/open-shop")
+    public ApiResponse<?> openShop(@PathVariable Long id) {
+        boolean result = userService.openShop(id);
+        if (result) {
+            return ApiResponse.success("店铺已恢复");
+        }
+        return ApiResponse.error("恢复店铺失败");
+    }
 }
