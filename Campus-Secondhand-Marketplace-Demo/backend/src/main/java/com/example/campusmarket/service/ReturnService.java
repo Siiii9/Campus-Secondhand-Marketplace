@@ -46,18 +46,23 @@ public class ReturnService {
     }
 
     @Transactional
-    public boolean auditReturn(Long requestId, Integer status) {
+    public boolean auditReturn(Long requestId, Integer status, Long auditorId) {
         ReturnRequest request = returnRequestMapper.selectById(requestId);
         if (request == null || request.getStatus() != 0) {
             return false;
         }
 
+        Order order = orderMapper.selectById(request.getOrderId());
+        if (order == null || !order.getMerchantId().equals(auditorId)) {
+            return false;
+        }
+
         request.setStatus(status);
+        request.setAuditorId(auditorId);
         request.setAuditTime(LocalDateTime.now());
         returnRequestMapper.updateById(request);
 
         if (status == 1) {
-            Order order = orderMapper.selectById(request.getOrderId());
             order.setStatus(4);
             order.setIsReturned(1);
             orderMapper.updateById(order);
