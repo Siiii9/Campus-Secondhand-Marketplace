@@ -49,13 +49,6 @@
           <label>店铺名称</label>
           <input type="text" v-model="shopName" placeholder="请输入店铺名称">
         </div>
-        <div class="form-group captcha-group">
-          <div>
-            <label>验证码</label>
-            <input type="text" v-model="captcha" placeholder="请输入验证码" required>
-          </div>
-          <img :src="captchaUrl" @click="refreshCaptcha" class="captcha-img">
-        </div>
         <button type="submit" class="register-btn">注册</button>
       </form>
       <p class="login-link">已有账号？<span @click="$router.push('/login')">立即登录</span></p>
@@ -78,12 +71,6 @@ const gender = ref('男')
 const bankAccount = ref('')
 const role = ref('USER')
 const shopName = ref('')
-const captcha = ref('')
-const captchaUrl = ref('/api/users/captcha?' + Date.now())
-
-const refreshCaptcha = () => {
-  captchaUrl.value = '/api/users/captcha?' + Date.now()
-}
 
 const roleChanged = () => {
   if (role.value === 'USER') {
@@ -103,10 +90,9 @@ const register = async () => {
       gender: gender.value,
       bankAccount: bankAccount.value,
       role: role.value,
-      shopName: shopName.value,
-      captcha: captcha.value
+      shopName: shopName.value
     })
-    
+
     if (res.data.code === 200) {
       ElMessage.success(res.data.message)
       setTimeout(() => {
@@ -114,11 +100,9 @@ const register = async () => {
       }, 1500)
     } else {
       ElMessage.error(res.data.message)
-      refreshCaptcha()
     }
   } catch (error) {
     ElMessage.error('注册失败')
-    refreshCaptcha()
   }
 }
 </script>
@@ -192,16 +176,5 @@ const register = async () => {
   font-size: 1rem;
   cursor: pointer;
   margin-top: 1rem;
-}
-
-.login-link {
-  text-align: center;
-  margin-top: 1rem;
-  color: #666;
-}
-
-.login-link span {
-  color: #e74c3c;
-  cursor: pointer;
 }
 </style>
