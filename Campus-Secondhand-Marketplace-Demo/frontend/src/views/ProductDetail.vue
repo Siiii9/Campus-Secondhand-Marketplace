@@ -86,13 +86,25 @@ const addToCart = () => {
   axios.post(`/api/cart?productId=${productId.value}&quantity=${quantity.value}`).then(res => {
     if (res.data.code === 200) {
       ElMessage.success('添加成功')
+    } else {
+      ElMessage.error(res.data.message || '添加失败')
     }
+  }).catch(err => {
+    ElMessage.error('添加失败，请先登录')
+    console.error(err)
   })
 }
 
 const buyNow = () => {
-  axios.post(`/api/cart?productId=${productId.value}&quantity=${quantity.value}`).then(() => {
-    window.location.href = '/cart'
+  axios.post(`/api/cart?productId=${productId.value}&quantity=${quantity.value}`).then(res => {
+    if (res.data.code === 200) {
+      window.location.href = '/cart'
+    } else {
+      ElMessage.error(res.data.message || '添加失败')
+    }
+  }).catch(err => {
+    ElMessage.error('添加失败，请先登录')
+    console.error(err)
   })
 }
 </script>
