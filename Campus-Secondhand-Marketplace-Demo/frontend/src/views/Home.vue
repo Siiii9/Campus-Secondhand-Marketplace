@@ -12,6 +12,7 @@
         <span v-if="isLoggedIn" @click="$router.push('/cart')">购物车</span>
         <span v-if="isLoggedIn" @click="$router.push('/orders')">订单</span>
         <span v-if="isLoggedIn" @click="$router.push('/profile')">个人中心</span>
+        <span v-if="isMerchant" @click="$router.push('/merchant')">商家中心</span>
         <span v-if="isAdmin" @click="$router.push('/admin')">管理后台</span>
       </div>
     </header>
@@ -52,6 +53,7 @@ import axios from 'axios'
 const keyword = ref('')
 const isLoggedIn = ref(false)
 const isAdmin = ref(false)
+const isMerchant = ref(false)
 const carousels = ref<any[]>([])
 const categories = ref<any[]>([])
 const products = ref<any[]>([])
@@ -59,6 +61,7 @@ const products = ref<any[]>([])
 onMounted(() => {
   isLoggedIn.value = localStorage.getItem('userToken') !== null
   isAdmin.value = localStorage.getItem('isAdmin') === 'true'
+  isMerchant.value = localStorage.getItem('isMerchant') === 'true'
   
   axios.get('/api/carousel').then(res => {
     carousels.value = res.data.data
@@ -67,6 +70,18 @@ onMounted(() => {
   axios.get('/api/products/search?page=1&size=8').then(res => {
     products.value = res.data.data.records
   })
+  
+  if (isLoggedIn.value) {
+    axios.get('/api/users/info', { withCredentials: true }).then(res => {
+      if (res.data.code === 200) {
+        const user = res.data.data
+        if (user.role === 'MERCHANT') {
+          isMerchant.value = true
+          localStorage.setItem('isMerchant', 'true')
+        }
+      }
+    })
+  }
 })
 
 const search = () => {

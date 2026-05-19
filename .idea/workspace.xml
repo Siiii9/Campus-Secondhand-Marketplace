@@ -5,9 +5,90 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8febcf36-b7da-444d-b150-cca99a97d995" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Campus-Secondhand-Marketplace-Demo/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Campus-Secondhand-Marketplace-Demo/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Campus-Secondhand-Marketplace-Demo/frontend/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Campus-Secondhand-Marketplace-Demo/frontend/vite.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/artifacts/contactSys_war_exploded.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/libraries/junit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/libraries/junit4.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/libraries/servlet_api1.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/uiDesigner.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../mysql.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/dao/ContactDao.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/dao/impl/ContactDaoMySQLImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/entity/Contact.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/exception/NameRepeatException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/jdbc/Demo1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/jdbc/TestJdbcServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/service/ContactService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/service/impl/ContactServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/servlet/AddContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/servlet/DeleteContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/servlet/ListContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/servlet/QueryContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/servlet/UpdateContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/cn/bistu/util/JdbcUtil.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/classes/db.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/lib/dom4j-1.6.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/lib/jakarta.servlet.jsp.jstl-2.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/lib/jakarta.servlet.jsp.jstl-api-2.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/lib/jstl-1.2.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/lib/mysql-connector-java-5.1.7-bin.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/lib/standard.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/WEB-INF/web.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/addContact.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/addContact.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/listContact.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/listContact.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../out/artifacts/contactSys_war_exploded/updateContact.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/dao/ContactDao.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/dao/impl/ContactDaoMySQLImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/entity/Contact.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/exception/NameRepeatException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/jdbc/Demo1.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/jdbc/TestJdbcServlet.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/service/ContactService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/service/impl/ContactServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/servlet/AddContactServlet.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/servlet/DeleteContactServlet.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/servlet/ListContactServlet.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/servlet/QueryContactServlet.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/servlet/UpdateContactServlet.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/cn/bistu/util/JdbcUtil.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../src/db.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../swf-contact.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/dao/ContactDao.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/dao/impl/ContactDaoMySQLImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/entity/Contact.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/exception/NameRepeatException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/jdbc/Demo1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/jdbc/TestJdbcServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/service/ContactService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/service/impl/ContactServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/servlet/AddContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/servlet/DeleteContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/servlet/ListContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/servlet/QueryContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/servlet/UpdateContactServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/cn/bistu/util/JdbcUtil.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/classes/db.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/lib/dom4j-1.6.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/lib/jakarta.servlet.jsp.jstl-2.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/lib/jakarta.servlet.jsp.jstl-api-2.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/lib/jstl-1.2.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/lib/mysql-connector-java-5.1.7-bin.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/lib/standard.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/WEB-INF/web.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/addContact.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/addContact.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/listContact.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/listContact.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/updateContact.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../web/updateContact.jsp" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,7 +96,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1
@@ -36,16 +117,16 @@
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.CampusMarketApplication.executor": "Run",
     "Spring Boot.CommunitySharedToolApplication.executor": "Run",
-    "git-widget-placeholder": "decZ",
+    "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/DELL/Desktop/保水/repository_sec/Campus-Secondhand-Marketplace",
+    "last_opened_file_path": "C:/Users/DELL/Desktop/保水/Campus-Secondhand-Marketplace-main",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "MavenSettings",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {

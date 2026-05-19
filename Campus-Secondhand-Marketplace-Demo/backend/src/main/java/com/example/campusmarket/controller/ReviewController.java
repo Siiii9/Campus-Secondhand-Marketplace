@@ -24,11 +24,17 @@ public class ReviewController {
             return ApiResponse.error(401, "未登录");
         }
         review.setFromUserId(user.getId());
-        boolean result = reviewService.addReview(review);
-        if (result) {
-            return ApiResponse.success("评价成功");
+
+        try {
+            boolean result = reviewService.addReview(review);
+            if (result) {
+                return ApiResponse.success("评价成功");
+            }
+            return ApiResponse.error("评价失败");
+        } catch (Exception e) {
+            // 捕获订单状态或业务校验抛出的异常，优雅返回
+            return ApiResponse.error(e.getMessage());
         }
-        return ApiResponse.error("评价失败");
     }
 
     @GetMapping("/product/{productId}")
@@ -43,13 +49,16 @@ public class ReviewController {
         return ApiResponse.success(reviews);
     }
 
-    @GetMapping("/merchant/{merchantId}/rating")
-    public ApiResponse<?> getMerchantRating(@PathVariable Long merchantId) {
-        return ApiResponse.success(reviewService.getMerchantRating(merchantId));
-    }
-
-    @GetMapping("/product/{productId}/rating")
-    public ApiResponse<?> getProductRating(@PathVariable Long productId) {
-        return ApiResponse.success(reviewService.getProductRating(productId));
+    @PostMapping("/{id}/reply")
+    public ApiResponse<?> replyReview(@PathVariable Long id, @RequestBody Review review, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return ApiResponse.error(401, "未登录");
+        }
+        boolean result = reviewService.replyReview(id, review.getReply());
+        if (result) {
+            return ApiResponse.success("回复成功");
+        }
+        return ApiResponse.error("回复失败");
     }
 }

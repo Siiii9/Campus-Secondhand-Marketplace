@@ -2,7 +2,9 @@ package com.example.campusmarket.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.campusmarket.entity.Cart;
+import com.example.campusmarket.entity.Product;
 import com.example.campusmarket.mapper.CartMapper;
+import com.example.campusmarket.mapper.ProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,29 +17,47 @@ public class CartService {
     @Autowired
     private CartMapper cartMapper;
 
+    @Autowired
+    private ProductMapper productMapper;
+
     public List<Cart> getCartByUser(Long userId) {
         QueryWrapper<Cart> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId);
-        return cartMapper.selectList(wrapper);
+        List<Cart> cartList = cartMapper.selectList(wrapper);
+
+        System.out.println("====== 触发购物车列表查询，当前传入的 userId 为: " + userId + "，查出记录数: " + (cartList != null ? cartList.size() : 0) + " ======");
+
+        if (cartList != null) {
+            for (Cart cart : cartList) {
+                if (cart.getProductId() != null) {
+                    Product product = productMapper.selectById(cart.getProductId());
+                    if (product != null) {
+                        cart.setProductName(product.getName());
+                        cart.setPrice(product.getDiscountPrice());
+                    }
+                }
+            }
+        }
+        return cartList;
     }
 
     public boolean addToCart(Long userId, Long productId, Integer quantity) {
         QueryWrapper<Cart> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId).eq("product_id", productId);
-        Cart existing = cartMapper.selectOne(wrapper);
+        Cart existingCart = cartMapper.selectOne(wrapper);
         
-        if (existing != null) {
-            existing.setQuantity(existing.getQuantity() + quantity);
-            return cartMapper.updateById(existing) > 0;
+        if (existingCart != null) {
+            existingCart.setQuantity(existingCart.getQuantity() + quantity);
+            return cartMapper.updateById(existingCart) > 0;
+        } else {
+            Cart cart = new Cart();
+            cart.setUserId(userId);
+            cart.setProductId(productId);
+            cart.setQuantity(quantity);
+            cart.setSelected(1);
+            cart.setCreatedAt(LocalDateTime.now());
+            return cartMapper.insert(cart) > 0;
         }
-        
-        Cart newCart = new Cart();
-        newCart.setUserId(userId);
-        newCart.setProductId(productId);
-        newCart.setQuantity(quantity);
-        newCart.setSelected(1);
-        newCart.setCreatedAt(LocalDateTime.now());
-        return cartMapper.insert(newCart) > 0;
     }
 
     public boolean updateCart(Long id, Integer quantity, Integer selected) {

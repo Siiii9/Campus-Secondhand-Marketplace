@@ -44,62 +44,28 @@ const cartItems = ref<any[]>([])
 const products = ref<any[]>([])
 
 onMounted(() => {
-  loadCart()
+  axios.get('/api/cart').then(res => {
+    cartItems.value = res.data.data
+  })
 })
 
-const loadCart = () => {
-  axios.get('/api/cart').then(res => {
-    if (res.data.code === 200) {
-      cartItems.value = res.data.data || []
-      loadProductDetails()
-    } else {
-      cartItems.value = []
-    }
-  }).catch(err => {
-    cartItems.value = []
-    console.error(err)
-  })
-}
-
-const loadProductDetails = () => {
-  const productIds = [...new Set(cartItems.value.map(item => item.productId))]
-  if (productIds.length === 0) return
-
-  Promise.all(productIds.map(id => axios.get(`/api/products/${id}`))).then(results => {
-    results.forEach(res => {
-      if (res.data.code === 200) {
-        products.value.push(res.data.data)
-      }
-    })
-  }).catch(err => {
-    console.error(err)
-  })
-}
-
-const getProductImage = (productId: any) => {
-  const product = products.value.find(p => p.id == productId)
-  if (product && product.images && product.images.length > 0) {
-    return product.images[0]
-  }
+const getProductImage = (productId: string) => {
   return '/images/default.jpg'
 }
 
-const getProductName = (productId: any) => {
-  const product = products.value.find(p => p.id == productId)
-  return product ? product.name : '加载中...'
+const getProductName = (productId: string) => {
+  return '商品名称'
 }
 
-const getProductPrice = (productId: any) => {
-  const product = products.value.find(p => p.id == productId)
-  return product ? product.discountPrice : 0
+const getProductPrice = (productId: string) => {
+  return 0
 }
 
 const getTotal = (item: any) => {
-  const price = getProductPrice(item.productId)
-  return (item.quantity * price).toFixed(2)
+  return (item.quantity * 100).toFixed(2)
 }
 
-const updateCart = (id: number, quantity: number | null, selected: number | null) => {
+const updateCart = (id: string, quantity: number | null, selected: number | null) => {
   axios.put(`/api/cart/${id}`, {}, {
     params: { quantity, selected }
   }).then(res => {
@@ -117,7 +83,7 @@ const updateQuantity = (item: any, delta: number) => {
   }
 }
 
-const removeItem = (id: number) => {
+const removeItem = (id: string) => {
   axios.delete(`/api/cart/${id}`).then(res => {
     if (res.data.code === 200) {
       cartItems.value = cartItems.value.filter(item => item.id !== id)
@@ -127,14 +93,11 @@ const removeItem = (id: number) => {
 }
 
 const selectedCount = computed(() => {
-  return cartItems.value.filter(item => item.selected).reduce((sum: number, item: any) => sum + item.quantity, 0)
+  return cartItems.value.filter(item => item.selected).reduce((sum, item) => sum + item.quantity, 0)
 })
 
 const totalPrice = computed(() => {
-  return cartItems.value.filter((item: any) => item.selected).reduce((sum: number, item: any) => {
-    const price = getProductPrice(item.productId)
-    return sum + item.quantity * price
-  }, 0).toFixed(2)
+  return cartItems.value.filter(item => item.selected).reduce((sum, item) => sum + item.quantity * 100, 0).toFixed(2)
 })
 
 const checkout = () => {

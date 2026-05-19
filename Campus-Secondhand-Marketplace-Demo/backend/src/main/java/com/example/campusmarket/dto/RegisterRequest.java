@@ -26,4 +26,10 @@ public class RegisterRequest {
     private String shopName;
 
     private String captcha;
+
+    private String businessLicense;
+
+    private String idCardFront;
+
+    private String idCardBack;
 }

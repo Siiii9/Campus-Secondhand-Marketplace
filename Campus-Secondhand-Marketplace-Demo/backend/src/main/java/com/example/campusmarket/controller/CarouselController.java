@@ -15,8 +15,22 @@ public class CarouselController {
     @Autowired
     private CarouselService carouselService;
 
+    /**
+     * 【修改】后台管理：拉取全部轮播图
+     * 请求：GET /api/carousel
+     */
     @GetMapping
     public ApiResponse<?> getCarousels() {
+        List<Carousel> carousels = carouselService.getAllCarousels();
+        return ApiResponse.success(carousels);
+    }
+
+    /**
+     * 【新增】前台门户首页：只获取激活展示中的轮播图列表
+     * 请求：GET /api/carousel/active
+     */
+    @GetMapping("/active")
+    public ApiResponse<?> getActiveCarousels() {
         List<Carousel> carousels = carouselService.getActiveCarousels();
         return ApiResponse.success(carousels);
     }
@@ -30,6 +44,9 @@ public class CarouselController {
         return ApiResponse.error("添加失败");
     }
 
+    /**
+     * 根据数据库字段规范：id 类型为 INT
+     */
     @PutMapping("/{id}")
     public ApiResponse<?> updateCarousel(@PathVariable Integer id, @RequestBody Carousel carousel) {
         carousel.setId(id);
@@ -40,6 +57,9 @@ public class CarouselController {
         return ApiResponse.error("更新失败");
     }
 
+    /**
+     * 根据数据库字段规范：id 类型为 INT
+     */
     @DeleteMapping("/{id}")
     public ApiResponse<?> deleteCarousel(@PathVariable Integer id) {
         boolean result = carouselService.deleteCarousel(id);

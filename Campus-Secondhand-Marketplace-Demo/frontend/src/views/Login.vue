@@ -31,13 +31,14 @@ const login = async () => {
     const res = await axios.post('/api/users/login', {
       username: username.value,
       password: password.value
-    })
+    }, { withCredentials: true })
     
     if (res.data.code === 200) {
       localStorage.setItem('userToken', res.data.data.id.toString())
       localStorage.setItem('username', res.data.data.username)
       localStorage.setItem('role', res.data.data.role)
       localStorage.setItem('isAdmin', res.data.data.role === 'ADMIN' ? 'true' : 'false')
+      localStorage.setItem('isMerchant', res.data.data.role === 'MERCHANT' ? 'true' : 'false')
       ElMessage.success('登录成功')
       
       if (res.data.data.role === 'ADMIN') {

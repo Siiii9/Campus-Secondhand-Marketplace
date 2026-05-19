@@ -1,5 +1,6 @@
 package com.example.campusmarket.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.campusmarket.entity.Wallet;
 import com.example.campusmarket.mapper.WalletMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,9 @@ public class WalletService {
     private WalletMapper walletMapper;
 
     public Wallet getWalletByUserId(Long userId) {
-        Wallet wallet = walletMapper.selectById(userId);
+        QueryWrapper<Wallet> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        Wallet wallet = walletMapper.selectOne(queryWrapper);
         if (wallet == null) {
             wallet = new Wallet();
             wallet.setUserId(userId);
