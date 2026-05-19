@@ -22,9 +22,9 @@ public class ProductRequest {
 
     private String unit;
 
-    private String conditionLevel;
-
     private Integer isNegotiable;
+
+    private String conditionLevel;
 
     private List<String> images;
 }

@@ -16,19 +16,18 @@ public class Review {
 
     private Long orderId;
 
-    private Long productId;
-
-    private Long userId;
+    private String reviewType;
 
     private Long fromUserId;
 
-    private Long merchantId;
+    private Long toUserId;
+
+    private Long productId;
 
     private Integer rating;
 
     private String content;
 
-    private Integer type;
     private String reply;
 
     private LocalDateTime createdAt;

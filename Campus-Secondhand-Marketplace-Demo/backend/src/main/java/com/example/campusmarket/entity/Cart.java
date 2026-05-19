@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @TableName("cart")
 public class Cart {
@@ -17,4 +19,8 @@ public class Cart {
     private Long productId;
 
     private Integer quantity;
+
+    private Integer selected;
+
+    private LocalDateTime createdAt;
 }

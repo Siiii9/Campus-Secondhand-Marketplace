@@ -43,14 +43,6 @@ public class ReviewController {
         return ApiResponse.success(reviews);
     }
 
-    @GetMapping("/merchant/{merchantId}/rating")
-    public ApiResponse<?> getMerchantRating(@PathVariable Long merchantId) {
-        return ApiResponse.success(reviewService.getMerchantRating(merchantId));
-    }
-
-    @GetMapping("/product/{productId}/rating")
-    public ApiResponse<?> getProductRating(@PathVariable Long productId) {
-        return ApiResponse.success(reviewService.getProductRating(productId));
     @PostMapping("/{id}/reply")
     public ApiResponse<?> replyReview(@PathVariable Long id, @RequestBody Review review, HttpSession session) {
         User user = (User) session.getAttribute("user");

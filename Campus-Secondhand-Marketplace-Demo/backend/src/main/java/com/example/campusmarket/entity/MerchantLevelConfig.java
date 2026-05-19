@@ -11,12 +11,12 @@ import java.math.BigDecimal;
 @TableName("merchant_level_config")
 public class MerchantLevelConfig {
 
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
-
+    @TableId(value = "level", type = IdType.AUTO)
     private Integer level;
 
     private BigDecimal feeRate;
 
-    private String description;
+    private BigDecimal minTransactionAmount;
+
+    private BigDecimal minSatisfaction;
 }

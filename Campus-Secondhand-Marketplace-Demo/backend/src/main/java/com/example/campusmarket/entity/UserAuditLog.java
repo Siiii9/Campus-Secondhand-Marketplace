@@ -24,13 +24,9 @@ public class UserAuditLog {
 
     private Integer auditStatus;
 
-    private String remark;
-
     private String auditRemark;
 
     private Long auditorId;
 
     private LocalDateTime auditTime;
-
-    private LocalDateTime createdAt;
 }

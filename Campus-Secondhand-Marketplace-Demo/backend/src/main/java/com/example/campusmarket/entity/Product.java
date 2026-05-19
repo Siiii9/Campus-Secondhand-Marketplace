@@ -15,9 +15,11 @@ public class Product {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String name;
+    private Long merchantId;
 
     private Integer categoryId;
+
+    private String name;
 
     private String description;
 
@@ -29,25 +31,21 @@ public class Product {
 
     private String unit;
 
-    private String conditionLevel;
-
     private Integer isNegotiable;
 
-    private Long merchantId;
+    private String conditionLevel;
 
     private Integer status;
-
-    private Integer auditStatus;
 
     private Integer salesCount;
 
     private Integer viewCount;
 
-    private Double avgRating;
+    private BigDecimal avgRating;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
+    private Integer auditStatus;
 
     private LocalDateTime auditTime;
+
+    private LocalDateTime createdAt;
 }

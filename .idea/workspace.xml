@@ -5,9 +5,90 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8febcf36-b7da-444d-b150-cca99a97d995" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Campus-Secondhand-Marketplace-Demo/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Campus-Secondhand-Marketplace-Demo/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Campus-Secondhand-Marketplace-Demo/frontend/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Campus-Secondhand-Marketplace-Demo/frontend/vite.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/ReinsertHammerTool.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/ReinsertHammerTool.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/check_table_structure.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/check_table_structure.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/mysql-connector-java-8.0.28.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/reinsert_hammer.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/CommunitySharedToolApplication.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/config/CorsConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/config/WebMvcConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/AdminController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/BorrowController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/BorrowInfoController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/ChatController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/CreditController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/ImageUploadController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/MessageController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/PublishedToolController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/TemplateController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/ToolClassController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/ToolController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/controller/UserInfoController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/dto/AdminUserDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/dto/BorrowRecordDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/dto/ChatMessageDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/dto/LoginRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/dto/MessageDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/dto/RegisterRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/dto/ToolClassDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/dto/ToolRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/BorrowInfo.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/BorrowRecord.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/CreditLog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/Message.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/PropertyType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/PublishedTool.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/Tool.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/ToolClass.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/ToolTemplateDetail.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/ToolTemplateMain.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/entity/UserInfo.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/BorrowInfoRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/BorrowRecordRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/CreditLogRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/MessageRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/PropertyTypeRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/PublishedToolRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/ToolClassRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/ToolRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/ToolTemplateDetailRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/ToolTemplateMainRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/repository/UserInfoRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/BorrowInfoService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/BorrowService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/ChatService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/CreditService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/LoginService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/MessageService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/PropertyTypeService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/PublishedToolService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/RegisterService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/TemplateService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/ToolClassService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/ToolManagementService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/java/com/example/Community_Shared_Tool_java/service/ToolService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/CheckToolTableTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/ClearDatabaseTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/ClearPublishedToolsTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/CommunitySharedToolApplicationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/DatabaseTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/DirectClearTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/FinalClearTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/ReturnTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/VerifyClearTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/controller/DeviceClassControllerTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_java/src/test/java/com/example/Community_Shared_Tool_java/service/ToolClassServiceTest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/router/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/router/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/views/Admin.vue" beforeDir="false" afterPath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/views/Admin.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/views/Login.vue" beforeDir="false" afterPath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/views/Login.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/views/Profile.vue" beforeDir="false" afterPath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/views/Profile.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/views/Register.vue" beforeDir="false" afterPath="$PROJECT_DIR$/Community_Shared_Tool_Demo/Community_Shared_Tool_web/src/views/Register.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,10 +117,10 @@
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.CampusMarketApplication.executor": "Run",
     "Spring Boot.CommunitySharedToolApplication.executor": "Run",
-    "git-widget-placeholder": "decZ",
+    "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/DELL/Desktop/保水/repository_sec/Campus-Secondhand-Marketplace",
+    "last_opened_file_path": "D:/File/二手交易平台实验/Campus-Secondhand-Marketplace",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -54,7 +135,7 @@
     ]
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Spring Boot.CommunitySharedToolApplication">
     <configuration name="init_database.sql" type="DatabaseScript" editBeforeRun="true" nameIsGenerated="true">
       <script-file value="$PROJECT_DIR$/Community_Shared_Tool_Demo/init_database.sql" />
       <script-mode>FILE</script-mode>
@@ -71,6 +152,7 @@
     <attachedChunks>
       <set>
         <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.28238.7" />
+        <option value="bundled-js-predefined-d6986cc7102b-a71380e98a7c-JavaScript-IU-252.28238.7" />
       </set>
     </attachedChunks>
   </component>

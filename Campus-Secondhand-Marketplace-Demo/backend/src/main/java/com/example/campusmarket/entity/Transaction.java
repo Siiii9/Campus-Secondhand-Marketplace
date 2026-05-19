@@ -17,25 +17,21 @@ public class Transaction {
 
     private Long orderId;
 
-    private Long userId;
-
     private Long merchantId;
 
     private Long buyerId;
 
     private BigDecimal amount;
 
+    private BigDecimal fee;
+
     private BigDecimal feeRate;
 
     private BigDecimal netAmount;
 
-    private BigDecimal fee;
-
-    private Integer type;
-
     private Integer status;
 
-    private LocalDateTime settledAt;
-
     private LocalDateTime createdAt;
+
+    private LocalDateTime settledAt;
 }

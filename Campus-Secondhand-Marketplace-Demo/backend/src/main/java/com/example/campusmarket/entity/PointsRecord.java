@@ -16,15 +16,9 @@ public class PointsRecord {
 
     private Long userId;
 
-    private Integer amount;
-
     private Integer changeAmount;
 
-    private Integer type;
-
     private String reason;
-
-    private String description;
 
     private Long orderId;
 

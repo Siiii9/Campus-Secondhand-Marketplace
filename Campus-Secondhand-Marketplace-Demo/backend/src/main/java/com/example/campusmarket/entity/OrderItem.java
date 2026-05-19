@@ -18,11 +18,7 @@ public class OrderItem {
 
     private Long productId;
 
-    private String productName;
-
-    private BigDecimal price;
-
     private Integer quantity;
 
-    private String imageUrl;
+    private BigDecimal price;
 }

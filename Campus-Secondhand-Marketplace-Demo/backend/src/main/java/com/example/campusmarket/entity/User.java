@@ -34,8 +34,6 @@ public class User {
 
     private Integer status;
 
-    private Integer auditStatus;
-
     private Integer merchantLevel;
 
     private String shopName;
@@ -43,6 +41,4 @@ public class User {
     private Integer shopStatus;
 
     private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 }
