@@ -29,6 +29,7 @@ public class Review {
     private String content;
 
     private Integer type;
+    private String reply;
 
     private LocalDateTime createdAt;
 }

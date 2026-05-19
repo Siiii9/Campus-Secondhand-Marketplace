@@ -38,6 +38,7 @@ const login = async () => {
       localStorage.setItem('username', res.data.data.username)
       localStorage.setItem('role', res.data.data.role)
       localStorage.setItem('isAdmin', res.data.data.role === 'ADMIN' ? 'true' : 'false')
+      localStorage.setItem('isMerchant', res.data.data.role === 'MERCHANT' ? 'true' : 'false')
       ElMessage.success('登录成功')
       
       if (res.data.data.role === 'ADMIN') {

@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -62,6 +63,9 @@ public class ProductController {
         if (!"MERCHANT".equals(user.getRole())) {
             return ApiResponse.error("只有商家可以发布商品");
         }
+        if (user.getShopStatus() != null && user.getShopStatus() == 0) {
+            return ApiResponse.error("您的店铺已被管理员关闭，无法发布新商品");
+        }
 
         Product product = new Product();
         product.setMerchantId(user.getId());
@@ -87,8 +91,9 @@ public class ProductController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "created") String sortBy,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<Product> products = productService.searchProducts(keyword, sortBy, page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer auditStatus) {
+        Page<Map<String, Object>> products = productService.searchProducts(keyword, sortBy, page, size, auditStatus);
         return ApiResponse.success(products);
     }
 
@@ -103,7 +108,7 @@ public class ProductController {
 
     @GetMapping("/merchant/{merchantId}")
     public ApiResponse<?> getProductsByMerchant(@PathVariable Long merchantId) {
-        List<Product> products = productService.getProductsByMerchant(merchantId);
+        List<Map<String, Object>> products = productService.getProductsByMerchant(merchantId);
         return ApiResponse.success(products);
     }
 
@@ -228,6 +233,67 @@ public class ProductController {
         return ApiResponse.error("下架失败");
     }
 
+    @DeleteMapping("/{id}")
+    public ApiResponse<?> deleteProduct(@PathVariable Long id, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return ApiResponse.error(401, "未登录");
+        }
+
+        Product product = productService.getProductById(id);
+        if (product == null) {
+            return ApiResponse.error("商品不存在");
+        }
+
+        if (!product.getMerchantId().equals(user.getId()) && !"ADMIN".equals(user.getRole())) {
+            return ApiResponse.error("无权限操作");
+        }
+
+        boolean result = productService.deleteProduct(id);
+        if (result) {
+            return ApiResponse.success("删除成功");
+        }
+        return ApiResponse.error("删除失败");
+    }
+
+    @PutMapping("/{id}/stock")
+    public ApiResponse<?> updateStock(@PathVariable Long id, @RequestBody Map<String, Integer> request, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return ApiResponse.error(401, "未登录");
+        }
+
+        Product product = productService.getProductById(id);
+        if (product == null) {
+            return ApiResponse.error("商品不存在");
+        }
+
+        if (!product.getMerchantId().equals(user.getId()) && !"ADMIN".equals(user.getRole())) {
+            return ApiResponse.error("无权限操作");
+        }
+
+        Integer stock = request.get("stock");
+        if (stock == null || stock < 0) {
+            return ApiResponse.error("库存数量无效");
+        }
+
+        product.setStock(stock);
+        boolean result = productService.updateProduct(product);
+        if (result) {
+            return ApiResponse.success("库存调整成功");
+        }
+        return ApiResponse.error("库存调整失败");
+    }
+
+    @GetMapping("/{id}/detail")
+    public ApiResponse<?> getProductDetail(@PathVariable Long id) {
+        Map<String, Object> detail = productService.getProductDetail(id);
+        if (detail == null) {
+            return ApiResponse.error("商品不存在");
+        }
+        return ApiResponse.success(detail);
+    }
+
     @GetMapping("/merchant/{merchantId}/shop")
     public ApiResponse<?> getShopProducts(
             @PathVariable Long merchantId,
@@ -235,7 +301,33 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Integer status) {
         
-        Page<Product> products = productService.getShopProducts(merchantId, status, page, size);
+        Page<Map<String, Object>> products = productService.getShopProducts(merchantId, status, page, size);
+        return ApiResponse.success(products);
+    }
+
+    @GetMapping("/merchant")
+    public ApiResponse<?> getMerchantProducts(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return ApiResponse.error(401, "未登录");
+        }
+        
+        List<Map<String, Object>> products = productService.getProductsByMerchant(user.getId());
+        return ApiResponse.success(products);
+    }
+
+    @GetMapping("/merchant/shop")
+    public ApiResponse<?> getCurrentShopProducts(
+            HttpSession session,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return ApiResponse.error(401, "未登录");
+        }
+        
+        Page<Map<String, Object>> products = productService.getShopProducts(user.getId(), 1, page, size);
         return ApiResponse.success(products);
     }
 }

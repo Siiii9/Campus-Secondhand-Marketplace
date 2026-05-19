@@ -128,5 +128,12 @@ public class ReviewService {
         result.put("positiveRate", positiveRate);
         
         return result;
+    public boolean replyReview(Long reviewId, String reply) {
+        Review review = reviewMapper.selectById(reviewId);
+        if (review == null) {
+            return false;
+        }
+        review.setReply(reply);
+        return reviewMapper.updateById(review) > 0;
     }
 }

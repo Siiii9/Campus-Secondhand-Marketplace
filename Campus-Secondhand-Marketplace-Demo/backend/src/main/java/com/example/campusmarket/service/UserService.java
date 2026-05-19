@@ -2,8 +2,10 @@ package com.example.campusmarket.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.campusmarket.entity.Product;
 import com.example.campusmarket.entity.User;
 import com.example.campusmarket.entity.UserAuditLog;
+import com.example.campusmarket.mapper.ProductMapper;
 import com.example.campusmarket.mapper.UserAuditLogMapper;
 import com.example.campusmarket.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ public class UserService extends ServiceImpl<UserMapper, User> {
 
     @Autowired
     private UserMapper userMapper;
+    
+    @Autowired
+    private ProductMapper productMapper;
 
     @Autowired
     private UserAuditLogMapper userAuditLogMapper;
@@ -136,6 +141,25 @@ public class UserService extends ServiceImpl<UserMapper, User> {
             return false;
         }
         user.setShopStatus(0);
+        userMapper.updateById(user);
+        
+        QueryWrapper<Product> productWrapper = new QueryWrapper<>();
+        productWrapper.eq("merchant_id", userId);
+        productWrapper.eq("status", 1);
+        Product product = new Product();
+        product.setStatus(2);
+        productMapper.update(product, productWrapper);
+        
+        return true;
+    }
+    
+    @Transactional
+    public boolean openShop(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null || !"MERCHANT".equals(user.getRole())) {
+            return false;
+        }
+        user.setShopStatus(1);
         return userMapper.updateById(user) > 0;
     }
 }

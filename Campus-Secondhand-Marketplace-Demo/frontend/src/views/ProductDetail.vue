@@ -1,5 +1,6 @@
 <template>
   <div class="product-detail">
+    <button class="btn-back" @click="$router.push('/')">← 返回主页</button>
     <div class="product-images">
       <img v-for="(img, index) in product.images" :key="index" :src="img" :class="{ active: currentImage === index }">
       <div class="image-thumbs">
@@ -117,17 +118,26 @@ onMounted(() => {
 })
 
 const loadProduct = () => {
-  axios.get(`/api/products/${productId.value}`).then(res => {
+  axios.get(`/api/products/${productId.value}/detail`, { withCredentials: true }).then(res => {
     if (res.data.code === 200) {
-      product.value = res.data.data
+      const data = res.data.data
+      product.value = data.product
+      product.value.images = data.images || []
       loadMerchantInfo(product.value.merchantId)
+    } else {
+      ElMessage.error(res.data.message || '获取商品详情失败')
     }
+  }).catch(err => {
+    console.error('获取商品详情错误:', err)
+    ElMessage.error('服务器错误: ' + (err.response?.data?.message || err.message || '请稍后重试'))
   })
   
   axios.get(`/api/reviews/product/${productId.value}`).then(res => {
     if (res.data.code === 200) {
       reviews.value = res.data.data
     }
+  }).catch(err => {
+    console.error('获取评论错误:', err)
   })
 }
 
@@ -194,6 +204,19 @@ const submitReview = () => {
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+}
+
+.btn-back {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 10;
 }
 
 .product-images {
