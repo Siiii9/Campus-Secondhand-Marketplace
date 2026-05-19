@@ -40,15 +40,15 @@ public class ReturnService {
         if (order == null || !order.getUserId().equals(userId)) {
             return false;
         }
-        if (order.getStatus() != 2) { // 必须是 2=已收货 状态才能退款
+        if (order.getStatus() != 3) { // 必须是 3=已收货 状态才能申请退货
             return false;
         }
         if (LocalDateTime.now().isAfter(order.getReturnDeadline())) { // 检查24小时时限
             return false;
         }
 
-        // 1. 必须将订单状态修改为 3=退货申请中
-        order.setStatus(3);
+        // 1. 必须将订单状态修改为 4=退货申请中
+        order.setStatus(4);
         orderMapper.updateById(order);
 
         // 2. 插入退货申请单

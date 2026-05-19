@@ -25,7 +25,7 @@
         <div class="order-footer">
           <span>实付: ¥{{ order.actualPaid }}</span>
           <div class="order-actions">
-            <button v-if="order.status === 1" @click="confirmReceipt(order.id)">确认收货</button>
+            <button v-if="order.status === 2" @click="confirmReceipt(order.id)">确认收货</button>
             <button v-if="(order.status === 1 || order.status === 2) && order.status !== 3 && order.status !== 4" @click="applyReturn(order.id)">申请退货</button>
             <button v-if="order.status === 2 && !order.reviewed" @click="openReviewModal(order)">评价商品</button>
           </div>
@@ -93,9 +93,9 @@ const getStatusText = (status: number) => {
   const statusMap: Record<number, string> = {
     0: '待付款',
     1: '待发货',
-    2: '已收货',
-    3: '退货申请中',
-    4: '退货完成',
+    2: '已发货',
+    3: '已收货',
+    4: '退货申请中',
     5: '已完成'
   }
   return statusMap[status] || '未知'

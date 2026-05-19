@@ -200,11 +200,11 @@ public class OrderService {
     @Transactional
     public boolean confirmReceipt(Long orderId) {
         Order order = orderMapper.selectById(orderId);
-        if (order == null || order.getStatus() != 1) {
+        if (order == null || order.getStatus() != 2) {
             return false;
         }
 
-        order.setStatus(2);
+        order.setStatus(3);
         order.setReceivedAt(LocalDateTime.now());
         order.setReturnDeadline(LocalDateTime.now().plusHours(24));
         orderMapper.updateById(order);
