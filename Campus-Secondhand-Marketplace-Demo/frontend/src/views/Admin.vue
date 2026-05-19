@@ -116,6 +116,7 @@
             <td><span :class="getStatusClass(user.status)">{{ getStatusText(user.status) }}</span></td>
             <td>
               <button class="btn-edit" @click="showUserEdit(user)">编辑</button>
+              <button class="btn-recharge" @click="showRechargeModal(user)">充值</button>
               <button v-if="user.role === 'MERCHANT'" class="btn-level" @click="openLevelModal(user)">调整等级</button>
               <button v-if="user.role === 'MERCHANT' && user.shopStatus !== 0" class="btn-close-shop" @click="closeShop(user.id)">关闭店铺</button>
               <button v-if="user.role === 'MERCHANT' && user.shopStatus === 0" class="btn-open-shop" @click="openShop(user.id)">恢复店铺</button>
@@ -263,6 +264,22 @@
       </div>
     </div>
 
+    <!-- 钱包充值弹窗 -->
+    <div v-if="showRechargeModalFlag" class="modal-overlay" @click.self="closeRechargeModal">
+      <div class="modal-content">
+        <h3>用户钱包充值</h3>
+        <div v-if="rechargeUser" class="form-group">
+          <label>用户：{{ rechargeUser.username }} ({{ rechargeUser.realName }})</label>
+          <label>充值金额（元）</label>
+          <input v-model.number="rechargeAmount" type="number" min="1" placeholder="请输入充值金额" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="closeRechargeModal">取消</button>
+          <button class="btn-confirm" @click="confirmRecharge">确认充值</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 商品详情弹窗 -->
     <div v-if="showProductModal" class="modal-overlay" @click.self="closeProductModal">
       <div class="modal-content large">
@@ -340,12 +357,15 @@ const showMerchantModal = ref(false)
 const showEditModal = ref(false)
 const showLevelModal = ref(false)
 const showProductModal = ref(false)
+const showRechargeModalFlag = ref(false)
 
 const rejectReason = ref('')
 const currentAuditId = ref(0)
 const currentProductId = ref(0)
 
 const merchantDetail = ref<any>(null)
+const rechargeUser = ref<any>(null)
+const rechargeAmount = ref(100)
 const productDetail = ref<any>(null)
 const editingUser = reactive({})
 const levelUser = reactive({})
@@ -535,6 +555,37 @@ const confirmLevelChange = () => {
       closeLevelModal()
       loadUserList()
     }
+  })
+}
+
+const showRechargeModal = (user: any) => {
+  rechargeUser.value = { ...user }
+  showRechargeModalFlag.value = true
+}
+
+const closeRechargeModal = () => {
+  showRechargeModalFlag.value = false
+  rechargeUser.value = null
+  rechargeAmount.value = 100
+}
+
+const confirmRecharge = () => {
+  if (!rechargeAmount.value || rechargeAmount.value <= 0) {
+    ElMessage.error('请输入有效的充值金额')
+    return
+  }
+  
+  axios.post(`/api/admin/users/${rechargeUser.value.id}/recharge`, { 
+    amount: rechargeAmount.value 
+  }, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('充值成功')
+      closeRechargeModal()
+    } else {
+      ElMessage.error(res.data.message)
+    }
+  }).catch(err => {
+    ElMessage.error(err.response?.data?.message || '充值失败')
   })
 }
 
@@ -744,6 +795,11 @@ switchTab('user-audit')
 
 .btn-edit {
   background-color: #3498db;
+  color: #fff;
+}
+
+.btn-recharge {
+  background-color: #27ae60;
   color: #fff;
 }
 

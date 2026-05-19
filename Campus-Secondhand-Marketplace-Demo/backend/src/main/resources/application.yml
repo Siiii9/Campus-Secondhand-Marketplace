@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/campus_secondhand?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/campus_secondhand?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&sessionVariables=sql_mode=ANSI_QUOTES
     username: root
     password: Rr619254
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,10 +16,12 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    use-actual-param-name: true
   global-config:
     db-config:
       id-type: auto
       table-underline: true
+      table-prefix: ""
   mapper-locations: classpath:mapper/*.xml
 
 logging:

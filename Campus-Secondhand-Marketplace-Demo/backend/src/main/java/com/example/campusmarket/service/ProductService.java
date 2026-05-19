@@ -6,14 +6,18 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.campusmarket.entity.Product;
 import com.example.campusmarket.entity.ProductImage;
 import com.example.campusmarket.entity.Review;
+import com.example.campusmarket.entity.User;
 import com.example.campusmarket.mapper.ProductImageMapper;
 import com.example.campusmarket.mapper.ProductMapper;
 import com.example.campusmarket.mapper.ReviewMapper;
+import com.example.campusmarket.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +33,9 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
 
     @Autowired
     private ReviewMapper reviewMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Transactional
     public boolean addProduct(Product product, List<String> images) {
@@ -237,9 +244,34 @@ public class ProductService extends ServiceImpl<ProductMapper, Product> {
 
         QueryWrapper<Review> reviewWrapper = new QueryWrapper<>();
         reviewWrapper.eq("product_id", productId);
+        reviewWrapper.eq("review_type", "PRODUCT");
         reviewWrapper.orderByDesc("created_at");
         List<Review> reviews = reviewMapper.selectList(reviewWrapper);
-        detail.put("reviews", reviews);
+        
+        List<Map<String, Object>> reviewList = new ArrayList<>();
+        for (Review review : reviews) {
+            Map<String, Object> reviewMap = new HashMap<>();
+            reviewMap.put("id", review.getId());
+            reviewMap.put("rating", review.getRating());
+            reviewMap.put("content", review.getContent());
+            reviewMap.put("reply", review.getReply());
+            reviewMap.put("createdAt", review.getCreatedAt());
+            
+            User user = userMapper.selectById(review.getFromUserId());
+            reviewMap.put("userName", user != null ? (user.getRealName() != null ? user.getRealName() : user.getUsername()) : "匿名用户");
+            
+            reviewList.add(reviewMap);
+        }
+        detail.put("reviews", reviewList);
+
+        // 计算平均评分
+        if (!reviewList.isEmpty()) {
+            double avgRating = reviewList.stream()
+                .mapToInt(r -> (Integer) r.get("rating"))
+                .average()
+                .orElse(0);
+            product.setAvgRating(BigDecimal.valueOf(avgRating));
+        }
 
         return detail;
     }

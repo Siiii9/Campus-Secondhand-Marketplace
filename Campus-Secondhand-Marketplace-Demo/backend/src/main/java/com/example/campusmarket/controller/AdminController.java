@@ -3,10 +3,13 @@ package com.example.campusmarket.controller;
 import com.example.campusmarket.dto.ApiResponse;
 import com.example.campusmarket.entity.User;
 import com.example.campusmarket.entity.UserAuditLog;
+import com.example.campusmarket.entity.Wallet;
+import com.example.campusmarket.mapper.WalletMapper;
 import com.example.campusmarket.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +20,9 @@ public class AdminController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private WalletMapper walletMapper;
 
     @GetMapping("/users")
     public ApiResponse<?> getAllUsers(@RequestParam(required = false) String keyword, 
@@ -119,5 +125,33 @@ public class AdminController {
             return ApiResponse.success("店铺已恢复");
         }
         return ApiResponse.error("恢复店铺失败");
+    }
+
+    @PostMapping("/users/{id}/recharge")
+    public ApiResponse<?> rechargeWallet(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        BigDecimal amount = BigDecimal.ZERO;
+        if (body.get("amount") instanceof Number) {
+            amount = BigDecimal.valueOf(((Number) body.get("amount")).doubleValue());
+        } else if (body.get("amount") instanceof String) {
+            amount = new BigDecimal((String) body.get("amount"));
+        }
+
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return ApiResponse.error("充值金额必须为正数");
+        }
+
+        Wallet wallet = walletMapper.selectById(id);
+        if (wallet == null) {
+            wallet = new Wallet();
+            wallet.setUserId(id);
+            wallet.setBalance(amount);
+            wallet.setFrozenBalance(BigDecimal.ZERO);
+            walletMapper.insert(wallet);
+        } else {
+            wallet.setBalance(wallet.getBalance().add(amount));
+            walletMapper.updateById(wallet);
+        }
+
+        return ApiResponse.success("充值成功");
     }
 }

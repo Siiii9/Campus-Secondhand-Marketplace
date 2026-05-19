@@ -27,7 +27,7 @@
           <div class="order-actions">
             <button v-if="order.status === 1" @click="confirmReceipt(order.id)">确认收货</button>
             <button v-if="order.status === 2 && canReturn(order)" @click="applyReturn(order.id)">申请退货</button>
-            <button v-if="order.status === 5 && !order.reviewed" @click="openReviewModal(order)">评价商品</button>
+            <button v-if="order.status === 2 && !order.reviewed" @click="openReviewModal(order)">评价商品</button>
           </div>
         </div>
       </div>
@@ -78,8 +78,14 @@ const reviewForm = reactive({
 })
 
 onMounted(() => {
-  axios.get('/api/orders').then(res => {
-    orders.value = res.data.data
+  axios.get('/api/orders', { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      orders.value = res.data.data
+    } else {
+      ElMessage.error(res.data.message || '获取订单失败')
+    }
+  }).catch(err => {
+    ElMessage.error('获取订单失败')
   })
 })
 
@@ -99,29 +105,37 @@ const canReturn = (order: any) => {
   return order.returnDeadline && new Date(order.returnDeadline) > new Date()
 }
 
-const confirmReceipt = (orderId: string) => {
-  axios.post(`/api/orders/${orderId}/confirm`).then(res => {
+const confirmReceipt = (orderId: number) => {
+  axios.post(`/api/orders/${orderId}/confirm`, {}, { withCredentials: true }).then(res => {
     if (res.data.code === 200) {
       ElMessage.success('确认收货成功')
       const order = orders.value.find(o => o.id === orderId)
       if (order) {
         order.status = 2
       }
+    } else {
+      ElMessage.error(res.data.message || '确认收货失败')
     }
+  }).catch(err => {
+    ElMessage.error('确认收货失败')
   })
 }
 
-const applyReturn = (orderId: string) => {
+const applyReturn = (orderId: number) => {
   const reason = prompt('请输入退货原因')
   if (reason) {
-    axios.post('/api/returns', { orderId, reason }).then(res => {
+    axios.post('/api/returns', { orderId, reason }, { withCredentials: true }).then(res => {
       if (res.data.code === 200) {
         ElMessage.success('退货申请提交成功')
         const order = orders.value.find(o => o.id === orderId)
         if (order) {
           order.status = 3
         }
+      } else {
+        ElMessage.error(res.data.message || '退货申请失败')
       }
+    }).catch(err => {
+      ElMessage.error('退货申请失败')
     })
   }
 }
@@ -144,6 +158,7 @@ const submitReview = () => {
 
   order.items.forEach((item: any, idx: number) => {
     promises.push(axios.post('/api/reviews', {
+      orderId: order.id,
       productId: item.productId,
       rating: reviewForm.productRatings[idx],
       content: reviewForm.productReviews[idx],
@@ -152,6 +167,7 @@ const submitReview = () => {
   })
 
   promises.push(axios.post('/api/reviews', {
+    orderId: order.id,
     toUserId: order.merchantId,
     rating: reviewForm.merchantRating,
     content: '',

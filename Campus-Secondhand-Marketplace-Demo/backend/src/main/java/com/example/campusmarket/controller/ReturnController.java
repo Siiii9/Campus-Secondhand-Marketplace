@@ -21,11 +21,13 @@ public class ReturnController {
      * 买家提交退货申请
      */
     @PostMapping
-    public ApiResponse<?> createReturnRequest(@RequestParam Long orderId, @RequestParam String reason, HttpSession session) {
+    public ApiResponse<?> createReturnRequest(@RequestBody java.util.Map<String, Object> body, HttpSession session) {
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return ApiResponse.error(401, "未登录");
         }
+        Long orderId = ((Number) body.get("orderId")).longValue();
+        String reason = (String) body.get("reason");
         boolean result = returnService.createReturnRequest(orderId, user.getId(), reason);
         if (result) {
             return ApiResponse.success("退货申请提交成功，请等待商家审核");

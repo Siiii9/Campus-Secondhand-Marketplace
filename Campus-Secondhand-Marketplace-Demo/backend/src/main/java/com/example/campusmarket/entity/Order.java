@@ -1,15 +1,17 @@
 package com.example.campusmarket.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
-@TableName("order")
+@TableName("\"order\"")
 public class Order {
 
     @TableId(value = "id", type = IdType.AUTO)
@@ -38,4 +40,7 @@ public class Order {
     private LocalDateTime returnDeadline;
 
     private Integer isReturned;
+
+    @TableField(exist = false)
+    private List<OrderItem> items;
 }

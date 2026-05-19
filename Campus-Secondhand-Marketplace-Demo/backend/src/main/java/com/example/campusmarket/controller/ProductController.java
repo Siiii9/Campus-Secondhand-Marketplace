@@ -99,11 +99,11 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ApiResponse<?> getProductById(@PathVariable Long id) {
-        Product product = productService.getProductById(id);
-        if (product == null) {
+        Map<String, Object> detail = productService.getProductDetail(id);
+        if (detail == null) {
             return ApiResponse.error("商品不存在");
         }
-        return ApiResponse.success(product);
+        return ApiResponse.success(detail);
     }
 
     @GetMapping("/merchant/{merchantId}")

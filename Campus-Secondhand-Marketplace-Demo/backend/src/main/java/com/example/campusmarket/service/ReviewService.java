@@ -94,4 +94,66 @@ public class ReviewService {
         review.setReply(reply);
         return reviewMapper.updateById(review) > 0;
     }
+
+    /**
+     * 商家评价买家
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean addMerchantReview(Review review) {
+        Order order = orderMapper.selectById(review.getOrderId());
+        if (order == null) {
+            throw new RuntimeException("订单不存在");
+        }
+        
+        review.setReviewType("BUYER");
+        review.setCreatedAt(LocalDateTime.now());
+        return reviewMapper.insert(review) > 0;
+    }
+
+    /**
+     * 计算商品好评率
+     */
+    public double getProductPositiveRate(Long productId) {
+        QueryWrapper<Review> wrapper = new QueryWrapper<>();
+        wrapper.eq("product_id", productId);
+        List<Review> reviews = reviewMapper.selectList(wrapper);
+        
+        if (reviews == null || reviews.isEmpty()) {
+            return 0;
+        }
+        
+        long positiveCount = reviews.stream()
+            .filter(r -> r.getRating() != null && r.getRating() >= 4)
+            .count();
+        
+        return (double) positiveCount / reviews.size() * 100;
+    }
+
+    /**
+     * 计算商家好评率（服务态度）
+     */
+    public double getMerchantPositiveRate(Long merchantId) {
+        QueryWrapper<Review> wrapper = new QueryWrapper<>();
+        wrapper.eq("to_user_id", merchantId).eq("review_type", "MERCHANT_SERVICE");
+        List<Review> reviews = reviewMapper.selectList(wrapper);
+        
+        if (reviews == null || reviews.isEmpty()) {
+            return 0;
+        }
+        
+        long positiveCount = reviews.stream()
+            .filter(r -> r.getRating() != null && r.getRating() >= 4)
+            .count();
+        
+        return (double) positiveCount / reviews.size() * 100;
+    }
+
+    /**
+     * 获取用户评价列表（用于用户个人中心查看评价）
+     */
+    public List<Review> getUserReviews(Long userId) {
+        QueryWrapper<Review> wrapper = new QueryWrapper<>();
+        wrapper.eq("from_user_id", userId);
+        return reviewMapper.selectList(wrapper);
+    }
 }

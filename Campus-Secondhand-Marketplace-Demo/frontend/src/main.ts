@@ -13,6 +13,7 @@ import 'element-plus/dist/index.css' // 引入样式
 import axios from 'axios';
 axios.defaults.baseURL = 'http://localhost:8084';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.withCredentials = true;
 
 // 添加请求拦截器，自动携带token
 axios.interceptors.request.use(
