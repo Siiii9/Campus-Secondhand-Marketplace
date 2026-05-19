@@ -38,6 +38,9 @@ public class OrderService {
     private TransactionMapper transactionMapper;
 
     @Autowired
+    private ProductImageMapper productImageMapper;
+
+    @Autowired
     private MerchantLevelConfigMapper levelConfigMapper;
 
     @Autowired
@@ -67,7 +70,8 @@ public class OrderService {
             if (product == null) {
                 throw new RuntimeException("商品不存在");
             }
-            if (product.getStock() < item.getQuantity()) {
+            Integer stock = product.getStock();
+            if (stock == null || stock < item.getQuantity()) {
                 throw new RuntimeException("商品库存不足");
             }
             merchantId = product.getMerchantId();
@@ -87,7 +91,9 @@ public class OrderService {
         BigDecimal pointsDeductAmount = BigDecimal.ZERO;
 
         if (usePoints) {
-            Points points = pointsMapper.selectById(userId);
+            QueryWrapper<Points> pointsWrapper = new QueryWrapper<>();
+            pointsWrapper.eq("user_id", userId);
+            Points points = pointsMapper.selectOne(pointsWrapper);
             int availablePoints = points != null ? points.getPoints() : 0;
             int maxDeductPoints = totalAmount.intValue() * 100;
             pointsDeducted = Math.min(availablePoints, maxDeductPoints);
@@ -118,7 +124,9 @@ public class OrderService {
         walletMapper.updateById(buyerWallet);
 
         if (pointsDeducted > 0) {
-            Points points = pointsMapper.selectById(userId);
+            QueryWrapper<Points> pointsWrapper = new QueryWrapper<>();
+            pointsWrapper.eq("user_id", userId);
+            Points points = pointsMapper.selectOne(pointsWrapper);
             if (points != null) {
                 points.setPoints(points.getPoints() - pointsDeducted);
                 pointsMapper.updateById(points);
@@ -146,7 +154,10 @@ public class OrderService {
             orderItem.setPrice(product.getDiscountPrice());
             orderItemMapper.insert(orderItem);
 
-            product.setStock(product.getStock() - item.getQuantity());
+            Integer stock = product.getStock();
+            product.setStock(stock - item.getQuantity());
+            Integer currentSales = product.getSalesCount();
+            product.setSalesCount((currentSales != null ? currentSales : 0) + item.getQuantity());
             productMapper.updateById(product);
         }
 
@@ -171,6 +182,12 @@ public class OrderService {
                 Product product = productMapper.selectById(item.getProductId());
                 if (product != null) {
                     item.setProductName(product.getName());
+                    QueryWrapper<ProductImage> imageWrapper = new QueryWrapper<>();
+                    imageWrapper.eq("product_id", item.getProductId()).orderByAsc("sort_order").last("LIMIT 1");
+                    ProductImage productImage = productImageMapper.selectOne(imageWrapper);
+                    if (productImage != null) {
+                        item.setImage(productImage.getImageUrl());
+                    }
                 }
             }
             order.setItems(items);
@@ -190,6 +207,12 @@ public class OrderService {
                 Product product = productMapper.selectById(item.getProductId());
                 if (product != null) {
                     item.setProductName(product.getName());
+                    QueryWrapper<ProductImage> imageWrapper = new QueryWrapper<>();
+                    imageWrapper.eq("product_id", item.getProductId()).orderByAsc("sort_order").last("LIMIT 1");
+                    ProductImage productImage = productImageMapper.selectOne(imageWrapper);
+                    if (productImage != null) {
+                        item.setImage(productImage.getImageUrl());
+                    }
                 }
             }
             order.setItems(items);
@@ -275,7 +298,7 @@ public class OrderService {
     @Transactional
     public boolean applyReturn(Long orderId, String reason) {
         Order order = orderMapper.selectById(orderId);
-        if (order == null || order.getStatus() != 2) {
+        if (order == null || order.getStatus() != 3) {
             return false;
         }
 
@@ -291,7 +314,32 @@ public class OrderService {
         returnRequest.setCreatedAt(LocalDateTime.now());
         returnRequestMapper.insert(returnRequest);
 
-        order.setStatus(3);
+        order.setStatus(4);
+        orderMapper.updateById(order);
+
+        return true;
+    }
+
+    @Transactional
+    public boolean applyRefund(Long orderId, String reason) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null) {
+            return false;
+        }
+
+        if (order.getStatus() != 1 && order.getStatus() != 2) {
+            return false;
+        }
+
+        ReturnRequest returnRequest = new ReturnRequest();
+        returnRequest.setOrderId(orderId);
+        returnRequest.setUserId(order.getUserId());
+        returnRequest.setReason(reason);
+        returnRequest.setStatus(0);
+        returnRequest.setCreatedAt(LocalDateTime.now());
+        returnRequestMapper.insert(returnRequest);
+
+        order.setStatus(6);
         orderMapper.updateById(order);
 
         return true;
@@ -317,10 +365,23 @@ public class OrderService {
             return false;
         }
 
-        Wallet buyerWallet = walletMapper.selectById(order.getUserId());
+        QueryWrapper<Wallet> buyerWalletWrapper = new QueryWrapper<>();
+        buyerWalletWrapper.eq("user_id", order.getUserId());
+        Wallet buyerWallet = walletMapper.selectOne(buyerWalletWrapper);
         if (buyerWallet != null) {
             buyerWallet.setBalance(buyerWallet.getBalance().add(order.getActualPaid()));
             walletMapper.updateById(buyerWallet);
+        }
+
+        QueryWrapper<OrderItem> itemWrapper = new QueryWrapper<>();
+        itemWrapper.eq("order_id", orderId);
+        List<OrderItem> items = orderItemMapper.selectList(itemWrapper);
+        for (OrderItem item : items) {
+            Product product = productMapper.selectById(item.getProductId());
+            if (product != null) {
+                product.setStock(product.getStock() + item.getQuantity());
+                productMapper.updateById(product);
+            }
         }
 
         order.setStatus(5);
@@ -343,22 +404,42 @@ public class OrderService {
 
         if (rejectReason != null && !rejectReason.isEmpty()) {
             returnRequest.setStatus(2);
-            order.setStatus(2);
+            if (order.getStatus() == 4) {
+                order.setStatus(3);
+            } else {
+                order.setStatus(2);
+            }
         } else {
             returnRequest.setStatus(1);
-            order.setStatus(4);
 
-            Wallet buyerWallet = walletMapper.selectById(order.getUserId());
-            if (buyerWallet != null) {
-                buyerWallet.setBalance(buyerWallet.getBalance().add(order.getActualPaid()));
-                walletMapper.updateById(buyerWallet);
-            }
+            if (order.getStatus() == 6) {
+                order.setStatus(5);
+                QueryWrapper<Wallet> buyerWalletWrapper = new QueryWrapper<>();
+                buyerWalletWrapper.eq("user_id", order.getUserId());
+                Wallet buyerWallet = walletMapper.selectOne(buyerWalletWrapper);
+                if (buyerWallet != null) {
+                    buyerWallet.setBalance(buyerWallet.getBalance().add(order.getActualPaid()));
+                    walletMapper.updateById(buyerWallet);
+                }
 
-            Wallet merchantWallet = walletMapper.selectById(order.getMerchantId());
-            if (merchantWallet != null) {
-                BigDecimal fee = order.getActualPaid().multiply(BigDecimal.valueOf(0.001));
-                merchantWallet.setBalance(merchantWallet.getBalance().subtract(order.getActualPaid().subtract(fee)));
-                walletMapper.updateById(merchantWallet);
+                QueryWrapper<Wallet> merchantWalletWrapper = new QueryWrapper<>();
+                merchantWalletWrapper.eq("user_id", order.getMerchantId());
+                Wallet merchantWallet = walletMapper.selectOne(merchantWalletWrapper);
+                if (merchantWallet != null) {
+                    BigDecimal fee = order.getActualPaid().multiply(BigDecimal.valueOf(0.001));
+                    merchantWallet.setBalance(merchantWallet.getBalance().subtract(order.getActualPaid().subtract(fee)));
+                    walletMapper.updateById(merchantWallet);
+                }
+            } else {
+                order.setStatus(4);
+
+                QueryWrapper<Wallet> buyerWalletWrapper = new QueryWrapper<>();
+                buyerWalletWrapper.eq("user_id", order.getUserId());
+                Wallet buyerWallet = walletMapper.selectOne(buyerWalletWrapper);
+                if (buyerWallet != null) {
+                    buyerWallet.setFrozenBalance(buyerWallet.getFrozenBalance().add(order.getActualPaid()));
+                    walletMapper.updateById(buyerWallet);
+                }
             }
         }
 
@@ -378,6 +459,7 @@ public class OrderService {
         for (ReturnRequest request : requests) {
             Order order = orderMapper.selectById(request.getOrderId());
             if (order != null && order.getMerchantId().equals(merchantId)) {
+                request.setOrderStatus(order.getStatus());
                 merchantRequests.add(request);
             }
         }

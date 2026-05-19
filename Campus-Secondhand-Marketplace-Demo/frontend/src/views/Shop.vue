@@ -26,7 +26,7 @@
 
     <div class="product-grid">
       <div v-for="product in products" :key="product.id" class="product-card" @click="$router.push(`/product/${product.id}`)">
-        <img :src="product.images?.[0] || '/images/default.jpg'" alt="">
+        <img :src="product.images?.[0] || '/images/OIP-C.jpg'" alt="">
         <div class="product-name">{{ product.name }}</div>
         <div class="product-price">
           <span class="discount">¥{{ product.discountPrice }}</span>

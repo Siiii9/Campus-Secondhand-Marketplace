@@ -3,7 +3,9 @@ package com.example.campusmarket.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.campusmarket.entity.Cart;
 import com.example.campusmarket.entity.Product;
+import com.example.campusmarket.entity.ProductImage;
 import com.example.campusmarket.mapper.CartMapper;
+import com.example.campusmarket.mapper.ProductImageMapper;
 import com.example.campusmarket.mapper.ProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ public class CartService {
     @Autowired
     private ProductMapper productMapper;
 
+    @Autowired
+    private ProductImageMapper productImageMapper;
+
     public List<Cart> getCartByUser(Long userId) {
         QueryWrapper<Cart> wrapper = new QueryWrapper<>();
         wrapper.eq("user_id", userId);
@@ -34,6 +39,15 @@ public class CartService {
                     if (product != null) {
                         cart.setProductName(product.getName());
                         cart.setPrice(product.getDiscountPrice());
+                        
+                        // 查询商品第一张图片
+                        QueryWrapper<ProductImage> imageWrapper = new QueryWrapper<>();
+                        imageWrapper.eq("product_id", cart.getProductId());
+                        imageWrapper.orderByAsc("sort_order");
+                        List<ProductImage> images = productImageMapper.selectList(imageWrapper);
+                        if (!images.isEmpty()) {
+                            cart.setImage(images.get(0).getImageUrl());
+                        }
                     }
                 }
             }

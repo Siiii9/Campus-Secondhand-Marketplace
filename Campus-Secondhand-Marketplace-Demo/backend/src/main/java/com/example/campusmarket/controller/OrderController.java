@@ -89,6 +89,19 @@ public class OrderController {
         return ApiResponse.error("退货申请失败，可能已超过退货时限");
     }
 
+    @PostMapping("/{id}/refund/apply")
+    public ApiResponse<?> applyRefund(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String reason = body.get("reason");
+        if (reason == null || reason.isEmpty()) {
+            return ApiResponse.error("请填写退款原因");
+        }
+        boolean result = orderService.applyRefund(id, reason);
+        if (result) {
+            return ApiResponse.success("退款申请已提交");
+        }
+        return ApiResponse.error("退款申请失败，订单状态不符");
+    }
+
     @PostMapping("/{id}/ship")
     public ApiResponse<?> shipOrder(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String logisticsCompany = body.get("logisticsCompany");

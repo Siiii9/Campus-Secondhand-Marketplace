@@ -17,9 +17,25 @@
       </div>
     </header>
 
-    <div class="carousel">
-      <div v-for="item in carousels" :key="item.id" class="carousel-item">
-        <img :src="item.imageUrl" alt="">
+    <div class="carousel-container" @mouseenter="stopAutoPlay" @mouseleave="startAutoPlay">
+      <div class="carousel-wrapper" :style="{ transform: `translateX(-${currentIndex * 100}%)` }">
+        <div v-for="item in carousels" :key="item.id" class="carousel-item">
+          <a :href="item.linkUrl || 'javascript:void(0)'" target="_blank">
+            <img :src="item.imageUrl" :alt="item.title || '轮播图'">
+          </a>
+        </div>
+      </div>
+
+      <button v-if="carousels.length > 1" class="carousel-btn prev" @click="prevSlide">‹</button>
+      <button v-if="carousels.length > 1" class="carousel-btn next" @click="nextSlide">›</button>
+
+      <div v-if="carousels.length > 1" class="carousel-indicators">
+        <span
+          v-for="(item, index) in carousels"
+          :key="item.id"
+          :class="['indicator', { active: index === currentIndex }]"
+          @click="goToSlide(index)"
+        ></span>
       </div>
     </div>
 
@@ -36,7 +52,7 @@
       <h3>热门商品</h3>
       <div class="product-grid">
         <div v-for="product in products" :key="product.id" class="product-card" @click="$router.push(`/product/${product.id}`)">
-          <img :src="product.images?.[0] || '/images/default.jpg'" alt="">
+          <img :src="product.images?.[0] || '/images/OIP-C.jpg'" alt="">
           <div class="product-name">{{ product.name }}</div>
           <div class="product-price">¥{{ product.discountPrice }}</div>
           <div class="product-sales">销量: {{ product.salesCount }}</div>
@@ -47,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 
 const keyword = ref('')
@@ -57,20 +73,60 @@ const isMerchant = ref(false)
 const carousels = ref<any[]>([])
 const categories = ref<any[]>([])
 const products = ref<any[]>([])
+const currentIndex = ref(0)
+let autoPlayTimer: number | null = null
+
+const getActiveCarousels = () => {
+  axios.get('/api/carousel/active').then(res => {
+    if (res.data.code === 200) {
+      carousels.value = res.data.data || []
+      currentIndex.value = 0
+      startAutoPlay()
+    }
+  }).catch(err => {
+    console.error('获取轮播图失败:', err)
+  })
+}
+
+const nextSlide = () => {
+  if (carousels.value.length === 0) return
+  currentIndex.value = (currentIndex.value + 1) % carousels.value.length
+}
+
+const prevSlide = () => {
+  if (carousels.value.length === 0) return
+  currentIndex.value = (currentIndex.value - 1 + carousels.value.length) % carousels.value.length
+}
+
+const goToSlide = (index: number) => {
+  currentIndex.value = index
+}
+
+const startAutoPlay = () => {
+  if (autoPlayTimer) return
+  autoPlayTimer = window.setInterval(() => {
+    nextSlide()
+  }, 5000)
+}
+
+const stopAutoPlay = () => {
+  if (autoPlayTimer) {
+    clearInterval(autoPlayTimer)
+    autoPlayTimer = null
+  }
+}
 
 onMounted(() => {
   isLoggedIn.value = localStorage.getItem('userToken') !== null
   isAdmin.value = localStorage.getItem('isAdmin') === 'true'
   isMerchant.value = localStorage.getItem('isMerchant') === 'true'
-  
-  axios.get('/api/carousel').then(res => {
-    carousels.value = res.data.data
-  })
-  
+
+  getActiveCarousels()
+
   axios.get('/api/products/search?page=1&size=8').then(res => {
     products.value = res.data.data.records
   })
-  
+
   if (isLoggedIn.value) {
     axios.get('/api/users/info', { withCredentials: true }).then(res => {
       if (res.data.code === 200) {
@@ -82,6 +138,10 @@ onMounted(() => {
       }
     })
   }
+})
+
+onUnmounted(() => {
+  stopAutoPlay()
 })
 
 const search = () => {
@@ -141,11 +201,95 @@ header {
   color: #333;
 }
 
-.carousel {
+.carousel-container {
+  position: relative;
   height: 300px;
   background-color: #333;
   margin: 1rem;
   border-radius: 8px;
+  overflow: hidden;
+}
+
+.carousel-wrapper {
+  display: flex;
+  height: 100%;
+  transition: transform 0.5s ease;
+}
+
+.carousel-item {
+  min-width: 100%;
+  height: 100%;
+}
+
+.carousel-item a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 60px;
+  background-color: rgba(0,0,0,0.3);
+  color: #fff;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.carousel-container:hover .carousel-btn {
+  opacity: 1;
+}
+
+.carousel-btn.prev {
+  left: 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.carousel-btn.next {
+  right: 0;
+  border-radius: 4px 0 0 4px;
+}
+
+.carousel-btn:hover {
+  background-color: rgba(0,0,0,0.5);
+}
+
+.carousel-indicators {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.indicator {
+  width: 10px;
+  height: 10px;
+  background-color: rgba(255,255,255,0.5);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.indicator.active {
+  background-color: #fff;
+}
+
+.indicator:hover {
+  background-color: rgba(255,255,255,0.8);
 }
 
 .category-section {
@@ -196,6 +340,9 @@ header {
 .product-name {
   margin-top: 0.5rem;
   font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .product-price {

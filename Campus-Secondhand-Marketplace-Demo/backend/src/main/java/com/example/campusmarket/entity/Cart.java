@@ -36,9 +36,8 @@ public class Cart {
     // ✨ 以下为学生 B 专门为前端展示追加的“非数据库映射字段”
     // ==========================================
 
-    // 1. 商品名称（迎合前端 item.product_name）
+    // 1. 商品名称（迎合前端 item.productName）
     @TableField(exist = false)
-    @JsonProperty("product_name")
     private String productName;
 
     // 2. 商品实际价格（迎合前端 item.price）

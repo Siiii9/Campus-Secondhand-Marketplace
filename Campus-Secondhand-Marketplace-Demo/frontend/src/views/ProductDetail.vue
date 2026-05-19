@@ -1,45 +1,51 @@
 <template>
   <div class="product-detail">
     <button class="btn-back" @click="$router.push('/')">← 返回主页</button>
-    <div class="product-images">
-      <img v-for="(img, index) in product.images" :key="index" :src="img" :class="{ active: currentImage === index }">
-      <div class="image-thumbs">
-        <img v-for="(img, index) in product.images" :key="index" :src="img" @click="currentImage = index">
-      </div>
-    </div>
     
-    <div class="product-info">
-      <h1>{{ product.name }}</h1>
-      <div class="price-section">
-        <span class="discount-price">¥{{ product.discountPrice }}</span>
-        <span class="original-price">¥{{ product.originalPrice }}</span>
+    <div class="product-main">
+      <div class="product-images">
+        <img v-if="product.images && product.images.length > 0" :src="product.images[currentImage]" alt="" class="main-image">
+        <img v-else src="/images/OIP-C.jpg" alt="" class="main-image">
+        <div class="image-thumbs" v-if="product.images && product.images.length > 1">
+          <img v-for="(img, index) in product.images" :key="index" :src="img" @click="currentImage = index" :class="{ active: currentImage === index }">
+        </div>
       </div>
-      <div class="product-meta">
-        <span>库存: {{ product.stock }}</span>
-        <span>销量: {{ product.salesCount }}</span>
-        <span>评分: {{ product.avgRating || 0 }}</span>
-      </div>
-      <div class="specs">
-        <div>新旧程度: {{ product.conditionLevel }}</div>
-        <div>尺寸: {{ product.unit || '未填写' }}</div>
-        <div>是否议价: {{ product.isNegotiable === 1 ? '是' : '否' }}</div>
-      </div>
-      <div class="description">{{ product.description }}</div>
       
-      <div class="merchant-info" @click="goToShop">
-        <div class="merchant-name">{{ merchantInfo.shopName || '商家店铺' }}</div>
-        <div class="merchant-level">商家等级: 等级{{ merchantInfo.merchantLevel }}</div>
-        <span class="view-shop">查看店铺 →</span>
-      </div>
+      <div class="product-info">
+        <h1>{{ product.name }}</h1>
+        <div class="price-section">
+          <span class="discount-price">¥{{ product.discountPrice }}</span>
+          <span class="original-price">¥{{ product.originalPrice }}</span>
+        </div>
+        <div class="product-meta">
+          <span>库存: {{ product.stock }}</span>
+          <span>销量: {{ product.salesCount }}</span>
+          <span>评分: {{ product.avgRating || 0 }}</span>
+        </div>
+        <div class="specs">
+          <div>新旧程度: {{ product.conditionLevel }}</div>
+          <div>尺寸: {{ product.unit || '未填写' }}</div>
+          <div>是否议价: {{ product.isNegotiable === 1 ? '是' : '否' }}</div>
+        </div>
+        <div class="description">{{ product.description }}</div>
+        
+        <div class="merchant-info" @click="goToShop">
+          <div class="merchant-name">{{ merchantInfo.shopName || '商家店铺' }}</div>
+          <div class="merchant-level">商家等级: 等级{{ merchantInfo.merchantLevel }}</div>
+          <span class="view-shop">查看店铺 →</span>
+        </div>
 
-      <div class="quantity-section">
-        <label>数量:</label>
-        <button @click="quantity--" :disabled="quantity <= 1">-</button>
-        <span>{{ quantity }}</span>
-        <button @click="quantity++" :disabled="quantity >= product.stock">+</button>
+        <div class="quantity-section">
+          <label>数量:</label>
+          <button @click="quantity--" :disabled="quantity <= 1">-</button>
+          <span>{{ quantity }}</span>
+          <button @click="quantity++" :disabled="quantity >= product.stock">+</button>
+        </div>
+        <div class="action-buttons">
+          <button class="add-cart-btn" @click="addToCart">加入购物车</button>
+          <button class="buy-now-btn" @click="buyNow">立即购买</button>
+        </div>
       </div>
-      <button class="add-cart-btn" @click="addToCart">加入购物车</button>
-      <button class="buy-now-btn" @click="buyNow">立即购买</button>
     </div>
 
     <div class="reviews-section">
@@ -54,7 +60,6 @@
         <div class="review-time">{{ formatTime(review.createdAt) }}</div>
       </div>
 
-      <!-- 评价表单 -->
       <div class="review-form" v-if="isLoggedIn">
         <h4>发表评价</h4>
         <select v-model="newReview.rating">
@@ -93,7 +98,7 @@ const product = ref({
   conditionLevel: '',
   unit: '',
   isNegotiable: 0,
-  images: [],
+  images: [] as string[],
   merchantId: 0
 })
 
@@ -204,28 +209,36 @@ const submitReview = () => {
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  position: relative;
 }
 
 .btn-back {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
   padding: 0.5rem 1rem;
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
-  z-index: 10;
+  margin-bottom: 0.5rem;
+}
+
+.btn-back:hover {
+  background-color: #f5f5f5;
+}
+
+.product-main {
+  display: flex;
+  gap: 3rem;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
 }
 
 .product-images {
-  float: left;
   width: 450px;
-  margin-right: 3rem;
+  flex-shrink: 0;
 }
 
-.product-images img {
+.main-image {
   width: 100%;
   height: 400px;
   object-fit: cover;
@@ -245,14 +258,16 @@ const submitReview = () => {
   border-radius: 4px;
   cursor: pointer;
   opacity: 0.6;
+  border: 2px solid transparent;
 }
 
-.image-thumbs img:hover {
+.image-thumbs img.active {
   opacity: 1;
+  border-color: #e74c3c;
 }
 
 .product-info {
-  overflow: hidden;
+  flex: 1;
 }
 
 .product-info h1 {
@@ -268,70 +283,78 @@ const submitReview = () => {
   font-size: 2rem;
   color: #e74c3c;
   font-weight: bold;
+  margin-right: 1rem;
 }
 
 .original-price {
-  font-size: 1rem;
+  font-size: 1.2rem;
   color: #999;
   text-decoration: line-through;
-  margin-left: 1rem;
 }
 
 .product-meta {
   display: flex;
   gap: 2rem;
+  padding: 1rem 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
   margin-bottom: 1rem;
   color: #666;
 }
 
 .specs {
   margin-bottom: 1rem;
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 4px;
 }
 
 .specs div {
   margin-bottom: 0.5rem;
-}
-
-.description {
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
   color: #666;
 }
 
-.merchant-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.description {
   padding: 1rem;
-  background-color: #fff;
-  border: 1px solid #eee;
+  background-color: #f9f9f9;
   border-radius: 4px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.merchant-info {
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   cursor: pointer;
+  margin-bottom: 1.5rem;
+}
+
+.merchant-info:hover {
+  border-color: #e74c3c;
 }
 
 .merchant-name {
   font-weight: bold;
+  margin-bottom: 0.3rem;
 }
 
 .merchant-level {
   font-size: 0.85rem;
   color: #666;
+  margin-bottom: 0.3rem;
 }
 
 .view-shop {
-  margin-left: auto;
   color: #e74c3c;
+  font-size: 0.85rem;
 }
 
 .quantity-section {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.quantity-section label {
+  margin-right: 1rem;
 }
 
 .quantity-section button {
@@ -342,46 +365,69 @@ const submitReview = () => {
   cursor: pointer;
 }
 
-.add-cart-btn, .buy-now-btn {
-  padding: 0.75rem 2rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 1rem;
+.quantity-section span {
+  padding: 0 1rem;
+  font-size: 1.2rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
 }
 
 .add-cart-btn {
-  background-color: #f39c12;
+  flex: 1;
+  padding: 0.8rem;
+  background-color: #ff9500;
   color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.add-cart-btn:hover {
+  background-color: #e68600;
 }
 
 .buy-now-btn {
+  flex: 1;
+  padding: 0.8rem;
   background-color: #e74c3c;
   color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.buy-now-btn:hover {
+  background-color: #c0392b;
 }
 
 .reviews-section {
-  clear: both;
-  margin-top: 3rem;
+  background-color: #fff;
   padding: 2rem;
-  border-top: 1px solid #ddd;
+  border-radius: 8px;
 }
 
 .reviews-section h3 {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .no-reviews {
   text-align: center;
-  color: #999;
   padding: 2rem;
+  color: #999;
 }
 
 .review-item {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background-color: #f9f9f9;
-  border-radius: 4px;
+  padding: 1rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.review-item:last-of-type {
+  border-bottom: none;
 }
 
 .review-header {
@@ -395,11 +441,12 @@ const submitReview = () => {
 }
 
 .rating {
-  color: #f39c12;
+  color: #f5b041;
 }
 
 .review-content {
   margin-bottom: 0.5rem;
+  line-height: 1.5;
 }
 
 .review-time {
@@ -409,9 +456,8 @@ const submitReview = () => {
 
 .review-form {
   margin-top: 2rem;
-  padding: 1.5rem;
-  background-color: #f9f9f9;
-  border-radius: 8px;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
 }
 
 .review-form h4 {
@@ -419,28 +465,33 @@ const submitReview = () => {
 }
 
 .review-form select {
-  display: block;
-  margin-bottom: 1rem;
+  width: 100%;
   padding: 0.5rem;
+  margin-bottom: 1rem;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
 
 .review-form textarea {
   width: 100%;
-  height: 100px;
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
+  resize: vertical;
+  min-height: 100px;
   margin-bottom: 1rem;
 }
 
 .submit-review-btn {
-  padding: 0.5rem 1.5rem;
+  padding: 0.6rem 2rem;
   background-color: #e74c3c;
   color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.submit-review-btn:hover {
+  background-color: #c0392b;
 }
 </style>

@@ -10,6 +10,7 @@
       <button :class="{ active: activeTab === 'merchant-audit' }" @click="switchTab('merchant-audit')">商家审核</button>
       <button :class="{ active: activeTab === 'user-list' }" @click="switchTab('user-list')">用户管理</button>
       <button :class="{ active: activeTab === 'product-audit' }" @click="switchTab('product-audit')">商品审核</button>
+      <button :class="{ active: activeTab === 'carousel-audit' }" @click="switchTab('carousel-audit'); loadCarousels()">轮播图审核</button>
     </div>
 
     <!-- 用户审核 -->
@@ -147,7 +148,7 @@
         <tbody>
           <tr v-for="product in pendingProducts" :key="product.id">
             <td>{{ product.id }}</td>
-            <td><img :src="product.images?.[0] || '/images/default.jpg'" alt="" class="product-thumb" /></td>
+            <td><img :src="product.images?.[0] || '/images/OIP-C.jpg'" alt="" class="product-thumb" /></td>
             <td>{{ product.name }}</td>
             <td>{{ product.shopName || product.merchantId }}</td>
             <td>¥{{ product.discountPrice }}</td>
@@ -156,6 +157,45 @@
               <button class="btn-detail" @click="showProductDetail(product.id)">查看详情</button>
               <button class="btn-approve" @click="auditProduct(product.id, 1)">通过</button>
               <button class="btn-reject" @click="showProductRejectModal(product.id)">拒绝</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 轮播图审核 -->
+    <div v-if="activeTab === 'carousel-audit'" class="tab-content">
+      <div class="filter-bar">
+        <span>轮播图管理</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>缩略图</th>
+            <th>跳转链接</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="carousel in carouselList" :key="carousel.id">
+            <td>{{ carousel.id }}</td>
+            <td><img :src="carousel.imageUrl" alt="" class="product-thumb" /></td>
+            <td>{{ carousel.linkUrl }}</td>
+            <td>
+              <span v-if="carousel.status === 0" class="status-pending">待审核</span>
+              <span v-else-if="carousel.status === 1" class="status-active">已启用</span>
+              <span v-else class="status-rejected">已拒绝</span>
+            </td>
+            <td>{{ formatTime(carousel.createdAt) }}</td>
+            <td>
+              <button v-if="carousel.status === 0" class="btn-approve" @click="auditCarousel(carousel.id, 1)">通过</button>
+              <button v-if="carousel.status === 0" class="btn-reject" @click="auditCarousel(carousel.id, 2)">拒绝</button>
+              <button v-if="carousel.status === 1" class="btn-reject" @click="auditCarousel(carousel.id, 0)">禁用</button>
+              <button v-if="carousel.status === 2" class="btn-approve" @click="auditCarousel(carousel.id, 1)">启用</button>
+              <button class="btn-delete" @click="deleteCarousel(carousel.id)">删除</button>
             </td>
           </tr>
         </tbody>
@@ -348,6 +388,7 @@ const pendingUsers = ref<any[]>([])
 const pendingMerchants = ref<any[]>([])
 const userList = ref<any[]>([])
 const pendingProducts = ref<any[]>([])
+const carouselList = ref<any[]>([])
 
 const searchKeyword = ref('')
 const filterRole = ref('')
@@ -407,12 +448,43 @@ const loadUserList = () => {
 }
 
 const loadPendingProducts = () => {
-  axios.get('/api/products/search', { 
+  axios.get('/api/products/search', {
     params: { page: 1, size: 100, auditStatus: 0 },
-    withCredentials: true 
+    withCredentials: true
   }).then(res => {
     if (res.data.code === 200) {
       pendingProducts.value = res.data.data.records
+    }
+  })
+}
+
+const loadCarousels = () => {
+  axios.get('/api/carousel', { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      carouselList.value = res.data.data
+    }
+  })
+}
+
+const auditCarousel = (id: number, status: number) => {
+  axios.put(`/api/carousel/${id}`, { status }, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('操作成功')
+      loadCarousels()
+    } else {
+      ElMessage.error(res.data.message || '操作失败')
+    }
+  })
+}
+
+const deleteCarousel = (id: number) => {
+  if (!confirm('确认删除该轮播图？')) return
+  axios.delete(`/api/carousel/${id}`, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('删除成功')
+      loadCarousels()
+    } else {
+      ElMessage.error(res.data.message || '删除失败')
     }
   })
 }

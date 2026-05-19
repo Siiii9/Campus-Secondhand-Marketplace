@@ -1,9 +1,13 @@
 <template>
   <div class="order-list">
-    <h2>我的订单</h2>
+    <div class="page-header">
+      <button class="btn-back" @click="$router.push('/')">← 返回主页</button>
+      <h2>我的订单</h2>
+    </div>
     
     <div v-if="orders.length === 0" class="empty-orders">
       <p>暂无订单</p>
+      <button @click="$router.push('/')">去购物</button>
     </div>
     
     <div v-else>
@@ -14,7 +18,7 @@
         </div>
         <div class="order-items">
           <div v-for="(item, idx) in order.items" :key="item.id" class="order-item">
-            <img :src="item.image || '/images/default.jpg'" alt="">
+            <img :src="item.image || '/images/OIP-C.jpg'" alt="">
             <div class="item-info">
               <div class="item-name">{{ item.productName }}</div>
               <div class="item-price">¥{{ item.price }}</div>
@@ -26,14 +30,14 @@
           <span>实付: ¥{{ order.actualPaid }}</span>
           <div class="order-actions">
             <button v-if="order.status === 2" @click="confirmReceipt(order.id)">确认收货</button>
-            <button v-if="(order.status === 1 || order.status === 2) && order.status !== 3 && order.status !== 4" @click="applyReturn(order.id)">申请退货</button>
+            <button v-if="order.status === 1 || order.status === 2" @click="applyRefund(order.id)">申请退款</button>
+            <button v-if="order.status === 3 && canReturn(order)" @click="applyReturn(order.id)">申请退货</button>
             <button v-if="order.status === 2 && !order.reviewed" @click="openReviewModal(order)">评价商品</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 评价弹窗 -->
     <div v-if="showReviewModal" class="review-modal">
       <div class="modal-content">
         <h3>评价订单 {{ currentOrder?.orderNo }}</h3>
@@ -96,7 +100,8 @@ const getStatusText = (status: number) => {
     2: '已发货',
     3: '已收货',
     4: '退货申请中',
-    5: '已完成'
+    5: '已完成',
+    6: '退款处理中'
   }
   return statusMap[status] || '未知'
 }
@@ -124,7 +129,7 @@ const confirmReceipt = (orderId: number) => {
 const applyReturn = (orderId: number) => {
   const reason = prompt('请输入退货原因')
   if (reason) {
-    axios.post('/api/returns', { orderId, reason }, { withCredentials: true }).then(res => {
+    axios.post(`/api/orders/${orderId}/return`, { reason }, { withCredentials: true }).then(res => {
       if (res.data.code === 200) {
         ElMessage.success('退货申请提交成功')
         const order = orders.value.find(o => o.id === orderId)
@@ -136,6 +141,25 @@ const applyReturn = (orderId: number) => {
       }
     }).catch(err => {
       ElMessage.error('退货申请失败')
+    })
+  }
+}
+
+const applyRefund = (orderId: number) => {
+  const reason = prompt('请输入退款原因')
+  if (reason) {
+    axios.post(`/api/orders/${orderId}/refund/apply`, { reason }, { withCredentials: true }).then(res => {
+      if (res.data.code === 200) {
+        ElMessage.success('退款申请已提交')
+        const order = orders.value.find(o => o.id === orderId)
+        if (order) {
+          order.status = 6
+        }
+      } else {
+        ElMessage.error(res.data.message || '退款申请失败')
+      }
+    }).catch(err => {
+      ElMessage.error('退款申请失败')
     })
   }
 }
@@ -190,15 +214,52 @@ const submitReview = () => {
 <style scoped>
 .order-list {
   padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-.order-list h2 {
+.page-header {
+  display: flex;
+  align-items: center;
   margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+.btn-back:hover {
+  background-color: #f5f5f5;
+}
+
+h2 {
+  margin: 0;
 }
 
 .empty-orders {
   text-align: center;
   padding: 4rem;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.empty-orders p {
+  color: #999;
+  margin-bottom: 1rem;
+}
+
+.empty-orders button {
+  padding: 0.5rem 2rem;
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .order-card {
@@ -225,6 +286,7 @@ const submitReview = () => {
 .order-item {
   display: flex;
   gap: 1rem;
+  padding: 0.5rem 0;
 }
 
 .order-item img {
@@ -270,6 +332,11 @@ const submitReview = () => {
   margin-left: 0.5rem;
 }
 
+.order-actions button:hover {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
 .review-modal {
   position: fixed;
   top: 0;
@@ -278,8 +345,8 @@ const submitReview = () => {
   bottom: 0;
   background-color: rgba(0,0,0,0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
@@ -287,50 +354,58 @@ const submitReview = () => {
   background-color: #fff;
   padding: 2rem;
   border-radius: 8px;
-  width: 500px;
+  max-width: 500px;
+  width: 90%;
   max-height: 80vh;
   overflow-y: auto;
 }
 
 .modal-content h3 {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.product-review, .merchant-review {
+.product-review {
   margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
 }
 
-.product-review h4, .merchant-review h4 {
+.product-review h4 {
   margin-bottom: 0.5rem;
 }
 
 .star-rating {
-  margin-bottom: 0.5rem;
-}
-
-.star-rating span {
   font-size: 1.5rem;
   color: #ddd;
   cursor: pointer;
+  margin-bottom: 0.5rem;
 }
 
 .star-rating span.active {
-  color: #f39c12;
+  color: #f5b041;
 }
 
 .product-review textarea {
   width: 100%;
-  height: 80px;
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
+  resize: vertical;
+}
+
+.merchant-review {
+  margin-bottom: 1rem;
+}
+
+.merchant-review h4 {
+  margin-bottom: 0.5rem;
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 .modal-actions button {
@@ -340,8 +415,8 @@ const submitReview = () => {
 }
 
 .modal-actions button:first-child {
+  background-color: #fff;
   border: 1px solid #ddd;
-  background: #fff;
 }
 
 .modal-actions button:last-child {

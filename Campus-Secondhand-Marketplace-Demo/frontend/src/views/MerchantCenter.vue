@@ -10,6 +10,7 @@
       <button :class="{ active: activeTab === 'add' }" @click="activeTab = 'add'">发布商品</button>
       <button :class="{ active: activeTab === 'shop' }" @click="activeTab = 'shop'">我的店铺</button>
       <button :class="{ active: activeTab === 'orders' }" @click="activeTab = 'orders'; loadOrders()">订单信息</button>
+      <button :class="{ active: activeTab === 'carousel' }" @click="activeTab = 'carousel'">申请轮播图</button>
     </div>
 
     <div v-if="activeTab === 'products'" class="tab-content">
@@ -149,6 +150,17 @@
       <div class="shop-header">
         <h3>{{ shopInfo.shopName || (currentUser?.realName || currentUser?.username) + '的店' }}</h3>
         <p class="service-rating">服务态度评分: {{ shopInfo.serviceRating || 0 }} ⭐</p>
+        <button class="edit-shop-btn" @click="showShopEdit = !showShopEdit">
+          {{ showShopEdit ? '收起' : '修改店铺名称' }}
+        </button>
+      </div>
+
+      <div v-if="showShopEdit" class="shop-edit-form">
+        <h4>修改店铺名称</h4>
+        <div class="form-group">
+          <input type="text" v-model="shopForm.shopName" placeholder="请输入新的店铺名称">
+        </div>
+        <button class="submit-btn" @click="updateShopName">保存修改</button>
       </div>
       
       <div class="shop-products">
@@ -166,7 +178,7 @@
     <div v-if="activeTab === 'orders'" class="tab-content">
       <div class="order-tabs">
         <button :class="{ active: orderTab === 'pending' }" @click="orderTab = 'pending'; loadOrders()">审核购买订单</button>
-        <button :class="{ active: orderTab === 'return' }" @click="orderTab = 'return'; loadReturnRequests()">退款申请审核</button>
+        <button :class="{ active: orderTab === 'return' }" @click="orderTab = 'return'; loadReturnRequests()">售后申请审核</button>
       </div>
       
       <div v-if="orderTab === 'pending'" class="order-content">
@@ -218,16 +230,15 @@
       </div>
       
       <div v-if="orderTab === 'return'" class="order-content">
-        <div v-if="returnRequests.length === 0 && refundOrders.length === 0" class="empty-state">暂无退款相关订单</div>
-        
-        <div v-if="returnRequests.length > 0">
-          <h4>退款申请审核</h4>
+        <div v-if="returnRequests.length === 0" class="empty-state">暂无售后申请</div>
+
+        <div v-if="returnRequests.filter(r => r.orderStatus === 6).length > 0">
+          <h4>退款/退货申请审核</h4>
           <div class="order-list">
-            <div v-for="request in returnRequests" :key="request.id" class="order-item">
+            <div v-for="request in returnRequests.filter(r => r.orderStatus === 6)" :key="request.id" class="order-item">
               <div class="order-info">
-                <span>订单号: {{ request.orderNo }}</span>
-                <span>买家: {{ request.userName }}</span>
-                <span>退款金额: ¥{{ request.amount }}</span>
+                <span>订单号: {{ request.orderId }}</span>
+                <span>买家: {{ request.userId }}</span>
               </div>
               <div class="return-reason">
                 <span>退款原因: {{ request.reason }}</span>
@@ -239,22 +250,67 @@
             </div>
           </div>
         </div>
-        
-        <div v-if="refundOrders.length > 0">
-          <h4>待退款订单</h4>
+
+        <div v-if="returnRequests.filter(r => r.orderStatus === 4).length > 0">
+          <h4>退货申请审核</h4>
           <div class="order-list">
-            <div v-for="order in refundOrders" :key="order.id" class="order-item">
+            <div v-for="request in returnRequests.filter(r => r.orderStatus === 4)" :key="request.id" class="order-item">
               <div class="order-info">
-                <span>订单号: {{ order.orderNo }}</span>
-                <span>买家: {{ order.userName }}</span>
-                <span>退款金额: ¥{{ order.actualPaid }}</span>
+                <span>订单号: {{ request.orderId }}</span>
+                <span>买家: {{ request.userId }}</span>
+              </div>
+              <div class="return-reason">
+                <span>退货原因: {{ request.reason }}</span>
               </div>
               <div class="order-actions">
-                <button @click="confirmRefund(order.id)">退款</button>
+                <button @click="approveReturn(request.id)">同意退货</button>
+                <button @click="rejectReturn(request.id)">拒绝退货</button>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="activeTab === 'carousel'" class="tab-content">
+      <div class="carousel-intro">
+        <h3>申请首页轮播图推荐</h3>
+        <p>想让你的商品在首页轮播图展示吗？提交申请，管理员审核通过后即可展示！</p>
+      </div>
+
+      <div class="carousel-form">
+        <h4>申请新的轮播图</h4>
+        <div class="form-group">
+          <label>选择要推荐的商品</label>
+          <select v-model="carouselForm.productId" @change="onProductSelect">
+            <option value="">请选择商品</option>
+            <option v-for="p in myProducts" :key="p.id" :value="p.id">{{ p.name }} - ¥{{ p.discountPrice }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>轮播图图片</label>
+          <div class="upload-area" @click="triggerCarouselFileInput">
+            <input
+              ref="carouselFileInput"
+              type="file"
+              accept="image/*"
+              @change="handleCarouselImageSelect"
+              style="display: none"
+            >
+            <div v-if="!carouselForm.imageUrl" class="upload-hint">
+              <span>点击上传轮播图图片（建议尺寸 1920x400）</span>
+            </div>
+            <div v-else class="carousel-preview">
+              <img :src="carouselForm.imageUrl" alt="轮播图预览">
+              <button class="remove-btn" @click.stop="carouselForm.imageUrl = ''">×</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="submit-btn" @click="submitCarouselApplication" :disabled="!carouselForm.productId || !carouselForm.imageUrl">
+          提交申请
+        </button>
       </div>
     </div>
 
@@ -400,6 +456,8 @@ const productTab = ref('selling')
 const productList = ref<any[]>([])
 const shopProducts = ref<any[]>([])
 const shopInfo = reactive({ shopName: '', serviceRating: 0 })
+const shopForm = reactive({ shopName: '' })
+const showShopEdit = ref(false)
 const currentUser = ref<any>(null)
 
 const productForm = reactive({
@@ -439,10 +497,18 @@ const shipForm = reactive({
   trackingNumber: ''
 })
 
+const carouselForm = reactive({
+  productId: '',
+  imageUrl: ''
+})
+const myProducts = ref<any[]>([])
+const carouselFileInput = ref<HTMLInputElement | null>(null)
+
 onMounted(() => {
   loadCurrentUser()
   loadProducts(1)
   loadShopInfo()
+  loadMyProducts()
 })
 
 const loadCurrentUser = () => {
@@ -477,11 +543,28 @@ const loadShopInfo = () => {
       shopProducts.value = res.data.data.records || []
     }
   })
-  
+
   axios.get('/api/users/info', { withCredentials: true }).then(res => {
     if (res.data.code === 200) {
       shopInfo.shopName = res.data.data.shopName || ''
       shopInfo.serviceRating = res.data.data.serviceRating || 0
+    }
+  })
+}
+
+const updateShopName = () => {
+  if (!shopForm.shopName.trim()) {
+    ElMessage.warning('请输入店铺名称')
+    return
+  }
+  axios.put('/api/users/info', { shopName: shopForm.shopName }, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('店铺名称修改成功')
+      shopInfo.shopName = shopForm.shopName
+      shopForm.shopName = ''
+      showShopEdit.value = false
+    } else {
+      ElMessage.error(res.data.message || '修改失败')
     }
   })
 }
@@ -831,6 +914,66 @@ const confirmRefund = (orderId: number) => {
       ElMessage.error('退款失败')
     })
   }
+}
+
+const loadMyProducts = () => {
+  axios.get('/api/products/merchant', { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      myProducts.value = res.data.data.filter((p: any) => p.status === 1 && p.stock > 0)
+    }
+  })
+}
+
+const onProductSelect = () => {
+}
+
+const triggerCarouselFileInput = () => {
+  carouselFileInput.value?.click()
+}
+
+const handleCarouselImageSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      carouselForm.imageUrl = e.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const submitCarouselApplication = () => {
+  if (!carouselForm.productId || !carouselForm.imageUrl) {
+    ElMessage.warning('请选择商品并上传轮播图')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('productId', carouselForm.productId)
+
+  const fileInput = carouselFileInput.value
+  if (fileInput?.files?.[0]) {
+    formData.append('file', fileInput.files[0])
+  }
+
+  axios.post('/api/carousel/apply', formData, {
+    withCredentials: true,
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('申请提交成功，请等待审核')
+      carouselForm.productId = ''
+      carouselForm.imageUrl = ''
+      if (carouselFileInput.value) {
+        carouselFileInput.value.value = ''
+      }
+    } else {
+      ElMessage.error(res.data.message || '申请提交失败')
+    }
+  }).catch(() => {
+    ElMessage.error('申请提交失败')
+  })
 }
 </script>
 
@@ -1414,5 +1557,117 @@ const confirmRefund = (orderId: number) => {
 
 .ship-form {
   margin-top: 1rem;
+}
+
+.carousel-intro {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.carousel-intro h3 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.carousel-intro p {
+  color: #666;
+  margin: 0;
+}
+
+.carousel-form {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.carousel-form h4 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.upload-area {
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.upload-area:hover {
+  border-color: #3498db;
+}
+
+.carousel-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.carousel-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+}
+
+.carousel-preview .remove-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.shop-header {
+  margin-bottom: 1rem;
+}
+
+.edit-shop-btn {
+  margin-top: 0.5rem;
+  padding: 0.4rem 1rem;
+  background-color: #3498db;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.edit-shop-btn:hover {
+  background-color: #2980b9;
+}
+
+.shop-edit-form {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.shop-edit-form h4 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.shop-edit-form .form-group {
+  margin-bottom: 0.5rem;
+}
+
+.shop-edit-form input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 </style>
