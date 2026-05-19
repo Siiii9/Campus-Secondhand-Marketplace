@@ -298,6 +298,38 @@ public class OrderService {
     }
 
     @Transactional
+    public boolean shipOrder(Long orderId, String logisticsCompany, String trackingNumber) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || order.getStatus() != 1) {
+            return false;
+        }
+
+        order.setStatus(2);
+        orderMapper.updateById(order);
+
+        return true;
+    }
+
+    @Transactional
+    public boolean refundOrder(Long orderId) {
+        Order order = orderMapper.selectById(orderId);
+        if (order == null || order.getStatus() != 4) {
+            return false;
+        }
+
+        Wallet buyerWallet = walletMapper.selectById(order.getUserId());
+        if (buyerWallet != null) {
+            buyerWallet.setBalance(buyerWallet.getBalance().add(order.getActualPaid()));
+            walletMapper.updateById(buyerWallet);
+        }
+
+        order.setStatus(5);
+        orderMapper.updateById(order);
+
+        return true;
+    }
+
+    @Transactional
     public boolean approveReturn(Long returnId, String rejectReason) {
         ReturnRequest returnRequest = returnRequestMapper.selectById(returnId);
         if (returnRequest == null || returnRequest.getStatus() != 0) {

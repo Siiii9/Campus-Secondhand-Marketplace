@@ -89,6 +89,32 @@ public class OrderController {
         return ApiResponse.error("退货申请失败，可能已超过退货时限");
     }
 
+    @PostMapping("/{id}/ship")
+    public ApiResponse<?> shipOrder(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String logisticsCompany = body.get("logisticsCompany");
+        String trackingNumber = body.get("trackingNumber");
+        if (logisticsCompany == null || logisticsCompany.isEmpty()) {
+            return ApiResponse.error("请填写物流公司");
+        }
+        if (trackingNumber == null || trackingNumber.isEmpty()) {
+            return ApiResponse.error("请填写运单号");
+        }
+        boolean result = orderService.shipOrder(id, logisticsCompany, trackingNumber);
+        if (result) {
+            return ApiResponse.success("发货成功");
+        }
+        return ApiResponse.error("发货失败");
+    }
+
+    @PostMapping("/{id}/refund")
+    public ApiResponse<?> refundOrder(@PathVariable Long id) {
+        boolean result = orderService.refundOrder(id);
+        if (result) {
+            return ApiResponse.success("退款成功");
+        }
+        return ApiResponse.error("退款失败");
+    }
+
     @GetMapping("/returns")
     public ApiResponse<?> getReturnRequests(HttpSession session) {
         User user = (User) session.getAttribute("user");

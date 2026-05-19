@@ -9,6 +9,7 @@
       <button :class="{ active: activeTab === 'products' }" @click="activeTab = 'products'">商品管理</button>
       <button :class="{ active: activeTab === 'add' }" @click="activeTab = 'add'">发布商品</button>
       <button :class="{ active: activeTab === 'shop' }" @click="activeTab = 'shop'">我的店铺</button>
+      <button :class="{ active: activeTab === 'orders' }" @click="activeTab = 'orders'; loadOrders()">订单信息</button>
     </div>
 
     <div v-if="activeTab === 'products'" class="tab-content">
@@ -162,6 +163,101 @@
       </div>
     </div>
 
+    <div v-if="activeTab === 'orders'" class="tab-content">
+      <div class="order-tabs">
+        <button :class="{ active: orderTab === 'pending' }" @click="orderTab = 'pending'; loadOrders()">审核购买订单</button>
+        <button :class="{ active: orderTab === 'return' }" @click="orderTab = 'return'; loadReturnRequests()">退款申请审核</button>
+      </div>
+      
+      <div v-if="orderTab === 'pending'" class="order-content">
+        <div v-if="pendingOrders.length === 0 && toShipOrders.length === 0" class="empty-state">暂无订单</div>
+        
+        <div v-if="pendingOrders.length > 0">
+          <h4>待审核订单</h4>
+          <div class="order-list">
+            <div v-for="order in pendingOrders" :key="order.id" class="order-item">
+              <div class="order-info">
+                <span>订单号: {{ order.orderNo }}</span>
+                <span>买家: {{ order.userName }}</span>
+                <span>金额: ¥{{ order.actualPaid }}</span>
+              </div>
+              <div class="order-items">
+                <div v-for="item in order.items" :key="item.id" class="order-product">
+                  <img :src="item.image || '/placeholder.png'" alt="">
+                  <span>{{ item.productName }} x{{ item.quantity }}</span>
+                </div>
+              </div>
+              <div class="order-actions">
+                <button @click="confirmOrder(order.id)">确认订单</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div v-if="toShipOrders.length > 0">
+          <h4>待发货订单</h4>
+          <div class="order-list">
+            <div v-for="order in toShipOrders" :key="order.id" class="order-item">
+              <div class="order-info">
+                <span>订单号: {{ order.orderNo }}</span>
+                <span>买家: {{ order.userName }}</span>
+                <span>金额: ¥{{ order.actualPaid }}</span>
+              </div>
+              <div class="order-items">
+                <div v-for="item in order.items" :key="item.id" class="order-product">
+                  <img :src="item.image || '/placeholder.png'" alt="">
+                  <span>{{ item.productName }} x{{ item.quantity }}</span>
+                </div>
+              </div>
+              <div class="order-actions">
+                <button @click="openShipModal(order)">确认发货</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div v-if="orderTab === 'return'" class="order-content">
+        <div v-if="returnRequests.length === 0 && refundOrders.length === 0" class="empty-state">暂无退款相关订单</div>
+        
+        <div v-if="returnRequests.length > 0">
+          <h4>退款申请审核</h4>
+          <div class="order-list">
+            <div v-for="request in returnRequests" :key="request.id" class="order-item">
+              <div class="order-info">
+                <span>订单号: {{ request.orderNo }}</span>
+                <span>买家: {{ request.userName }}</span>
+                <span>退款金额: ¥{{ request.amount }}</span>
+              </div>
+              <div class="return-reason">
+                <span>退款原因: {{ request.reason }}</span>
+              </div>
+              <div class="order-actions">
+                <button @click="approveReturn(request.id)">同意退款</button>
+                <button @click="rejectReturn(request.id)">拒绝退款</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div v-if="refundOrders.length > 0">
+          <h4>待退款订单</h4>
+          <div class="order-list">
+            <div v-for="order in refundOrders" :key="order.id" class="order-item">
+              <div class="order-info">
+                <span>订单号: {{ order.orderNo }}</span>
+                <span>买家: {{ order.userName }}</span>
+                <span>退款金额: ¥{{ order.actualPaid }}</span>
+              </div>
+              <div class="order-actions">
+                <button @click="confirmRefund(order.id)">退款</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 商品详情弹窗 -->
     <div v-if="showDetailModal" class="modal-overlay" @click.self="closeDetailModal">
       <div class="modal-content large">
@@ -267,6 +363,30 @@
         </div>
       </div>
     </div>
+
+    <!-- 发货弹窗 -->
+    <div v-if="showShipModal" class="modal-overlay" @click.self="closeShipModal">
+      <div class="modal-content small">
+        <h3>填写物流信息</h3>
+        <button class="close-btn" @click="closeShipModal">×</button>
+        
+        <div class="ship-form">
+          <div class="form-group">
+            <label>物流公司</label>
+            <input type="text" v-model="shipForm.logisticsCompany" placeholder="如：顺丰、圆通等" required>
+          </div>
+          <div class="form-group">
+            <label>运单号</label>
+            <input type="text" v-model="shipForm.trackingNumber" placeholder="请输入运单号" required>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="closeShipModal">取消</button>
+          <button class="btn-confirm" @click="submitShip">确认发货</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -300,11 +420,24 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const showDetailModal = ref(false)
 const showEditModal = ref(false)
 const showStockModal = ref(false)
+const showShipModal = ref(false)
 const selectedProduct = ref<any>(null)
 const editingProduct = ref<any>(null)
 const stockProduct = ref<any>(null)
 const newStock = ref(0)
 const replyContent = ref('')
+
+const orderTab = ref('pending')
+const pendingOrders = ref<any[]>([])
+const toShipOrders = ref<any[]>([])
+const returnRequests = ref<any[]>([])
+const refundOrders = ref<any[]>([])
+const currentShipOrder = ref<any>(null)
+
+const shipForm = reactive({
+  logisticsCompany: '',
+  trackingNumber: ''
+})
 
 onMounted(() => {
   loadCurrentUser()
@@ -583,6 +716,121 @@ const replyReview = (reviewId: number) => {
 
 const formatTime = (time: string) => {
   return new Date(time).toLocaleString()
+}
+
+const loadOrders = () => {
+  axios.get('/api/orders/merchant', { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      const orders = res.data.data
+      pendingOrders.value = orders.filter((o: any) => o.status === 0)
+      toShipOrders.value = orders.filter((o: any) => o.status === 1)
+      refundOrders.value = orders.filter((o: any) => o.status === 4 || o.status === 5)
+    }
+  }).catch(err => {
+    ElMessage.error('获取订单失败')
+  })
+}
+
+const loadReturnRequests = () => {
+  axios.get('/api/orders/returns', { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      returnRequests.value = res.data.data.filter((r: any) => r.status === 0)
+    }
+  }).catch(err => {
+    ElMessage.error('获取退款申请失败')
+  })
+}
+
+const confirmOrder = (orderId: number) => {
+  axios.post(`/api/orders/${orderId}/confirm`, {}, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('订单确认成功')
+      loadOrders()
+    } else {
+      ElMessage.error(res.data.message || '确认失败')
+    }
+  }).catch(err => {
+    ElMessage.error('确认失败')
+  })
+}
+
+const openShipModal = (order: any) => {
+  currentShipOrder.value = order
+  shipForm.logisticsCompany = ''
+  shipForm.trackingNumber = ''
+  showShipModal.value = true
+}
+
+const closeShipModal = () => {
+  showShipModal.value = false
+  currentShipOrder.value = null
+}
+
+const submitShip = () => {
+  if (!shipForm.logisticsCompany || !shipForm.trackingNumber) {
+    ElMessage.warning('请填写完整物流信息')
+    return
+  }
+  
+  axios.post(`/api/orders/${currentShipOrder.value.id}/ship`, {
+    logisticsCompany: shipForm.logisticsCompany,
+    trackingNumber: shipForm.trackingNumber
+  }, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('发货成功')
+      closeShipModal()
+      loadOrders()
+    } else {
+      ElMessage.error(res.data.message || '发货失败')
+    }
+  }).catch(err => {
+    ElMessage.error('发货失败')
+  })
+}
+
+const approveReturn = (requestId: number) => {
+  axios.post(`/api/orders/returns/${requestId}/approve`, {}, { withCredentials: true }).then(res => {
+    if (res.data.code === 200) {
+      ElMessage.success('同意退款成功')
+      loadReturnRequests()
+      loadOrders()
+    } else {
+      ElMessage.error(res.data.message || '操作失败')
+    }
+  }).catch(err => {
+    ElMessage.error('操作失败')
+  })
+}
+
+const rejectReturn = (requestId: number) => {
+  const reason = prompt('请输入拒绝退款的原因')
+  if (reason) {
+    axios.post(`/api/orders/returns/${requestId}/reject`, { reason }, { withCredentials: true }).then(res => {
+      if (res.data.code === 200) {
+        ElMessage.success('拒绝退款成功')
+        loadReturnRequests()
+      } else {
+        ElMessage.error(res.data.message || '操作失败')
+      }
+    }).catch(err => {
+      ElMessage.error('操作失败')
+    })
+  }
+}
+
+const confirmRefund = (orderId: number) => {
+  if (confirm('确认要执行退款吗？')) {
+    axios.post(`/api/orders/${orderId}/refund`, {}, { withCredentials: true }).then(res => {
+      if (res.data.code === 200) {
+        ElMessage.success('退款成功')
+        loadOrders()
+      } else {
+        ElMessage.error(res.data.message || '退款失败')
+      }
+    }).catch(err => {
+      ElMessage.error('退款失败')
+    })
+  }
 }
 </script>
 
@@ -1074,6 +1322,97 @@ const formatTime = (time: string) => {
 }
 
 .stock-form {
+  margin-top: 1rem;
+}
+
+.order-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.order-tabs button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.order-tabs button.active {
+  background-color: #3498db;
+  color: #fff;
+  border-color: #3498db;
+}
+
+.order-content {
+  margin-top: 1rem;
+}
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.order-item {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.order-info {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.order-items {
+  margin-bottom: 1rem;
+}
+
+.order-product {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.order-product img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.return-reason {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: #fff3f3;
+  border-radius: 4px;
+}
+
+.order-actions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.order-actions button:first-child {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.order-actions button:nth-child(2) {
+  background-color: #95a5a6;
+  color: #fff;
+}
+
+.ship-form {
   margin-top: 1rem;
 }
 </style>

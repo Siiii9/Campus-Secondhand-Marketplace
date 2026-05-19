@@ -26,7 +26,7 @@
           <span>实付: ¥{{ order.actualPaid }}</span>
           <div class="order-actions">
             <button v-if="order.status === 1" @click="confirmReceipt(order.id)">确认收货</button>
-            <button v-if="order.status === 2 && canReturn(order)" @click="applyReturn(order.id)">申请退货</button>
+            <button v-if="(order.status === 1 || order.status === 2) && order.status !== 3 && order.status !== 4" @click="applyReturn(order.id)">申请退货</button>
             <button v-if="order.status === 2 && !order.reviewed" @click="openReviewModal(order)">评价商品</button>
           </div>
         </div>

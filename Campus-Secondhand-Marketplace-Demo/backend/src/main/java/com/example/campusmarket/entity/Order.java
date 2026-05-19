@@ -42,5 +42,17 @@ public class Order {
     private Integer isReturned;
 
     @TableField(exist = false)
+    private String logisticsCompany;
+
+    @TableField(exist = false)
+    private String trackingNumber;
+
+    @TableField(exist = false)
+    private LocalDateTime shippedAt;
+
+    @TableField(exist = false)
+    private LocalDateTime refundedAt;
+
+    @TableField(exist = false)
     private List<OrderItem> items;
 }
