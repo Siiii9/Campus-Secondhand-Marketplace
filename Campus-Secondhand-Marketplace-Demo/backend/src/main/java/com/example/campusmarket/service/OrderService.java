@@ -437,8 +437,17 @@ public class OrderService {
                 buyerWalletWrapper.eq("user_id", order.getUserId());
                 Wallet buyerWallet = walletMapper.selectOne(buyerWalletWrapper);
                 if (buyerWallet != null) {
-                    buyerWallet.setFrozenBalance(buyerWallet.getFrozenBalance().add(order.getActualPaid()));
+                    buyerWallet.setBalance(buyerWallet.getBalance().add(order.getActualPaid()));
                     walletMapper.updateById(buyerWallet);
+                }
+
+                QueryWrapper<Wallet> merchantWalletWrapper = new QueryWrapper<>();
+                merchantWalletWrapper.eq("user_id", order.getMerchantId());
+                Wallet merchantWallet = walletMapper.selectOne(merchantWalletWrapper);
+                if (merchantWallet != null) {
+                    BigDecimal fee = order.getActualPaid().multiply(BigDecimal.valueOf(0.001));
+                    merchantWallet.setBalance(merchantWallet.getBalance().subtract(order.getActualPaid().subtract(fee)));
+                    walletMapper.updateById(merchantWallet);
                 }
             }
         }

@@ -32,9 +32,6 @@ public class Cart {
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
-    // ==========================================
-    // ✨ 以下为学生 B 专门为前端展示追加的“非数据库映射字段”
-    // ==========================================
 
     // 1. 商品名称（迎合前端 item.productName）
     @TableField(exist = false)
